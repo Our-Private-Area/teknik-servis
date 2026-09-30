@@ -1,0 +1,96 @@
+import { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Wrench,
+  Users,
+  Package,
+  UserCog,
+  BarChart3,
+  Wallet,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  Zap,
+  Building2,
+  Crown,
+  Globe,
+} from 'lucide-react';
+import './Sidebar.css';
+
+interface NavItem {
+  path: string;
+  label: string;
+  icon: React.ReactNode;
+}
+
+const navItems: NavItem[] = [
+  { path: '/super-admin', label: '👑 Süper Admin', icon: <Crown size={20} color="#fbbf24" /> },
+  { path: '/panel', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+  { path: '/panel/web-sitesi', label: 'Web Sayfam & Tema', icon: <Globe size={20} color="#38bdf8" /> },
+  { path: '/panel/servisler', label: 'Servisler', icon: <Wrench size={20} /> },
+  { path: '/panel/musteriler', label: 'Müşteriler', icon: <Users size={20} /> },
+  { path: '/panel/stok', label: 'Stok', icon: <Package size={20} /> },
+  { path: '/panel/personel', label: 'Personel', icon: <UserCog size={20} /> },
+  { path: '/panel/kasa', label: 'Kasa', icon: <Wallet size={20} /> },
+  { path: '/panel/raporlar', label: 'Raporlar', icon: <BarChart3 size={20} /> },
+  { path: '/panel/isletmeler', label: 'İşletmeler (SaaS)', icon: <Building2 size={20} /> },
+  { path: '/panel/ayarlar', label: 'Ayarlar', icon: <Settings size={20} /> },
+];
+
+export default function Sidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+
+  const isActive = (path: string) => {
+    if (path === '/panel') return location.pathname === '/panel';
+    return location.pathname.startsWith(path);
+  };
+
+  return (
+    <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
+      {/* Brand */}
+      <div className="sidebar__brand">
+        <div className="sidebar__logo">
+          <Zap size={22} />
+        </div>
+        {!collapsed && (
+          <div className="sidebar__brand-text">
+            <span className="sidebar__brand-name">TeknikPro</span>
+            <span className="sidebar__brand-sub">Servis Yönetimi</span>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation */}
+      <nav className="sidebar__nav">
+        <ul className="sidebar__list">
+          {navItems.map((item) => (
+            <li key={item.path}>
+              <NavLink
+                to={item.path}
+                end={item.path === '/panel'}
+                className={`sidebar__link ${isActive(item.path) ? 'sidebar__link--active' : ''}`}
+                title={collapsed ? item.label : undefined}
+              >
+                <span className="sidebar__link-icon">{item.icon}</span>
+                {!collapsed && <span className="sidebar__link-label">{item.label}</span>}
+                {isActive(item.path) && <span className="sidebar__link-indicator" />}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {/* Collapse Toggle */}
+      <button
+        className="sidebar__toggle"
+        onClick={() => setCollapsed(!collapsed)}
+        aria-label={collapsed ? 'Menüyü genişlet' : 'Menüyü daralt'}
+      >
+        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        {!collapsed && <span>Daralt</span>}
+      </button>
+    </aside>
+  );
+}

@@ -1,0 +1,335 @@
+/* Service List Styles */
+
+.service-list-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.service-list-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.service-list-page__title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.service-list-page__subtitle {
+  font-size: 13px;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+/* Tabs */
+.service-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08));
+  padding-bottom: 2px;
+  overflow-x: auto;
+}
+
+.service-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.service-tab:hover {
+  color: var(--text-primary, #ffffff);
+}
+
+.service-tab--active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  font-weight: 600;
+}
+
+.service-tab__badge {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 7px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+
+.service-tab--active .service-tab__badge {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+/* Toolbar */
+.service-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.service-toolbar__search {
+  flex: 1;
+  min-width: 280px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.service-toolbar__search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted, #64748b);
+}
+
+.service-toolbar__input {
+  width: 100%;
+  background: var(--bg-card, #111827);
+  border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08));
+  padding: 9px 14px 9px 38px;
+  border-radius: 8px;
+  color: var(--text-primary, #ffffff);
+  font-size: 13px;
+  outline: none;
+}
+
+.service-toolbar__input:focus {
+  border-color: #3b82f6;
+}
+
+.service-toolbar__filters {
+  display: flex;
+  gap: 10px;
+}
+
+.service-toolbar__select {
+  background: var(--bg-card, #111827);
+  border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08));
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: var(--text-primary, #ffffff);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Table Card */
+.service-table-card {
+  background: var(--bg-card, #111827);
+  border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.service-table-wrapper {
+  overflow-x: auto;
+}
+
+.service-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.service-table th {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text-muted, #94a3b8);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.service-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.service-table tbody tr {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.service-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.service-tracking-badge {
+  font-family: monospace;
+  font-weight: 700;
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.service-cell-customer {
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-name {
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+}
+
+.service-cell-device {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.device-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted, #94a3b8);
+}
+
+.device-name {
+  display: block;
+  font-weight: 600;
+}
+
+.device-complaint {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+}
+
+.status-dropdown-pill {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid;
+  cursor: pointer;
+  outline: none;
+}
+
+.priority-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.priority-tag--normal {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+}
+
+.priority-tag--urgent {
+  background: rgba(249, 115, 22, 0.12);
+  color: #fb923c;
+}
+
+.priority-tag--critical {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.service-cell-price {
+  display: flex;
+  flex-direction: column;
+}
+
+.total-price {
+  font-weight: 700;
+}
+
+.remaining-price {
+  font-size: 11px;
+  color: #f59e0b;
+}
+
+.service-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.action-icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary, #94a3b8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.action-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.action-icon-btn--danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.service-table-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-muted, #64748b);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.service-table-empty h3 {
+  font-size: 18px;
+  color: var(--text-primary, #ffffff);
+}

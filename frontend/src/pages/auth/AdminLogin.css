@@ -1,0 +1,233 @@
+/* =============================================
+   Admin Login — Platform Sahibi Girişi
+   ============================================= */
+
+.admin-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #050a14;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-login-page__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.admin-login-page__bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+}
+
+.admin-login-page__bg-orb--1 {
+  width: 500px;
+  height: 500px;
+  background: rgba(251, 191, 36, 0.15);
+  top: -200px;
+  right: -100px;
+  animation: adminOrbFloat 10s ease-in-out infinite alternate;
+}
+
+.admin-login-page__bg-orb--2 {
+  width: 400px;
+  height: 400px;
+  background: rgba(245, 158, 11, 0.1);
+  bottom: -150px;
+  left: -100px;
+  animation: adminOrbFloat 8s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes adminOrbFloat {
+  0% { opacity: 0.3; transform: scale(1); }
+  100% { opacity: 0.5; transform: scale(1.12); }
+}
+
+.admin-login-page__bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(251, 191, 36, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(251, 191, 36, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.admin-login-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 20px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(251, 191, 36, 0.15);
+  border-radius: 20px;
+  padding: 40px 32px;
+}
+
+.admin-login-card__brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.admin-login-card__logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: #1a1a1a;
+}
+
+.admin-login-card__title {
+  font-size: 22px;
+  font-weight: 800;
+  color: white;
+  margin: 0 0 4px;
+}
+
+.admin-login-card__subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.admin-login-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-login-card__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-login-card__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.admin-login-card__label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-login-card__forgot {
+  font-size: 12px;
+  color: #fbbf24;
+  text-decoration: none;
+}
+
+.admin-login-card__input {
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  color: white;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.admin-login-card__input:focus {
+  border-color: rgba(251, 191, 36, 0.5);
+}
+
+.admin-login-card__input-wrap {
+  position: relative;
+}
+
+.admin-login-card__input-wrap input {
+  width: 100%;
+  padding-right: 42px;
+  box-sizing: border-box;
+}
+
+.admin-login-card__eye {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0;
+}
+
+.admin-login-card__submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+
+.admin-login-card__submit:hover {
+  box-shadow: 0 4px 20px rgba(251, 191, 36, 0.3);
+}
+
+.admin-login-card__submit--loading {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.admin-login-card__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(26, 26, 26, 0.3);
+  border-top-color: #1a1a1a;
+  border-radius: 50%;
+  animation: adminSpin 0.6s linear infinite;
+}
+
+@keyframes adminSpin {
+  to { transform: rotate(360deg); }
+}
+
+.admin-login-card__footer {
+  text-align: center;
+  font-size: 12px;
+  color: #475569;
+  margin: 24px 0 0;
+}
+
+.admin-login-card__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  color: #64748b;
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.admin-login-card__back:hover {
+  color: #fbbf24;
+}

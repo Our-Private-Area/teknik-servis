@@ -1,0 +1,188 @@
+/* Cash Management Styles */
+
+.cash-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cash-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.cash-page__title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.cash-page__subtitle {
+  font-size: 13px;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.cash-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+@media (max-width: 768px) {
+  .cash-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cash-kpi-card {
+  background: var(--bg-card, #111827);
+  border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cash-kpi-card--balance {
+  border-color: rgba(59, 130, 246, 0.3);
+  background: linear-gradient(180deg, rgba(37, 99, 235, 0.1) 0%, rgba(17, 24, 39, 0.8) 100%);
+}
+
+.kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.kpi-value {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.kpi-sub {
+  font-size: 11px;
+  color: var(--text-muted, #64748b);
+}
+
+.cash-table-card {
+  background: var(--bg-card, #111827);
+  border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.cash-table-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cash-table-header h3 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.cash-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cash-table th {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text-muted, #94a3b8);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+}
+
+.cash-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.tx-type-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tx-type-pill--income {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.tx-type-pill--expense {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.tx-desc-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.tx-desc-cell strong {
+  color: var(--text-primary, #ffffff);
+}
+
+.tx-desc-cell small {
+  font-size: 11px;
+  color: var(--text-muted, #94a3b8);
+}
+
+.payment-method-tag {
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.tx-amount {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.type-toggle {
+  display: flex;
+  gap: 10px;
+}
+
+.type-btn {
+  flex: 1;
+  padding: 9px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary, #94a3b8);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.type-btn--income-active {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+  color: #34d399;
+}
+
+.type-btn--expense-active {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+  color: #f87171;
+}

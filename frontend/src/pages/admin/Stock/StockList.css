@@ -1,0 +1,166 @@
+/* Stock List Styles */
+
+.stock-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stock-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.stock-page__title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.stock-page__subtitle {
+  font-size: 13px;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.stock-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stock-search {
+  flex: 1;
+  min-width: 260px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.stock-select {
+  background: var(--bg-card, #111827);
+  border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08));
+  padding: 9px 14px;
+  border-radius: 8px;
+  color: var(--text-primary, #ffffff);
+  font-size: 13px;
+  outline: none;
+}
+
+.stock-table-card {
+  background: var(--bg-card, #111827);
+  border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08));
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.stock-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.stock-table th {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text-muted, #94a3b8);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.stock-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.stock-code-pill {
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: #93c5fd;
+}
+
+.stock-item-name {
+  font-weight: 600;
+  color: var(--text-primary, #ffffff);
+}
+
+.stock-cat {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.stock-brand {
+  font-size: 11px;
+  color: var(--text-muted, #64748b);
+}
+
+.stock-qty-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.qty-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.stock-qty-val {
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stock-qty-val--critical {
+  color: #ef4444;
+}
+
+.critical-icon {
+  color: #f59e0b;
+}
+
+.stock-prices {
+  display: flex;
+  flex-direction: column;
+}
+
+.sale-price {
+  font-weight: 700;
+  color: #34d399;
+}
+
+.purchase-price {
+  font-size: 11px;
+  color: var(--text-muted, #64748b);
+}
