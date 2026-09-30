@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useTenantStore, getTenantDefaultEmail } from './tenantStore';
+import { useTenantStore, getTenantDefaultEmail, INITIAL_TENANTS } from './tenantStore';
 import { useStaffStore } from './staffStore';
+import { Tenant } from '../types';
 
 export interface AuthUser {
   id: string;
@@ -37,31 +38,51 @@ export const useAuthStore = create<AuthState>()(
           return { success: false, message: 'Lütfen e-posta ve şifrenizi girin.' };
         }
 
-        const { tenants, setCurrentTenant } = useTenantStore.getState();
+        const storeTenants = useTenantStore.getState().tenants || [];
         const { staffMembers } = useStaffStore.getState();
 
-        // 1. İşletme e-posta eşleşmesi
-        let matchedTenant = tenants.find((t) => {
-          const directMatch = t.loginEmail?.toLowerCase() === cleanEmail;
-          const defaultMatch = getTenantDefaultEmail(t.slug).toLowerCase() === cleanEmail;
-          const contactMatch = t.email?.toLowerCase() === cleanEmail;
-          return directMatch || defaultMatch || contactMatch;
-        });
-
-        // 2. Slug anahtar eşleşmesi (örn: bursabilisim -> bursa-bilisim)
-        if (!matchedTenant) {
-          matchedTenant = tenants.find((t) => {
-            const cleanSlug = t.slug.replace(/[^a-z0-9]/g, '');
-            const emailUser = cleanEmail.split('@')[0].replace(/[^a-z0-9]/g, '');
-            return emailUser.length > 3 && (cleanSlug.includes(emailUser) || emailUser.includes(cleanSlug));
+        // 1. Birleştirilmiş işletme listesi (localStorage eski olsa bile daima güncel şifreler korunur)
+        const allTenantsMap = new Map<string, Tenant>();
+        for (const it of INITIAL_TENANTS) {
+          allTenantsMap.set(it.id, { ...it });
+        }
+        for (const st of storeTenants) {
+          const existing = allTenantsMap.get(st.id);
+          allTenantsMap.set(st.id, {
+            ...existing,
+            ...st,
+            loginEmail: st.loginEmail || existing?.loginEmail || getTenantDefaultEmail(st.slug),
+            password: st.password || existing?.password || (st.slug === 'bursa-bilisim' ? 'Bursa2026!' : st.slug === 'kadikoy-cep' ? 'Kadikoy2026!' : 'Teknik2026!'),
           });
         }
+        const allTenants = Array.from(allTenantsMap.values());
+
+        // 2. İşletme e-posta ve slug eşleşmesi
+        let matchedTenant = allTenants.find((t) => {
+          const loginMatch = t.loginEmail?.toLowerCase() === cleanEmail;
+          const contactMatch = t.email?.toLowerCase() === cleanEmail;
+          const defaultEmailMatch = getTenantDefaultEmail(t.slug).toLowerCase() === cleanEmail;
+          const cleanSlug = t.slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const emailPrefix = cleanEmail.split('@')[0].replace(/[^a-z0-9]/g, '');
+          const prefixMatch = emailPrefix.length >= 4 && (cleanSlug.includes(emailPrefix) || emailPrefix.includes(cleanSlug));
+          return loginMatch || contactMatch || defaultEmailMatch || prefixMatch;
+        });
 
         if (matchedTenant) {
+          const expectedPassword =
+            matchedTenant.password ||
+            (matchedTenant.slug === 'bursa-bilisim'
+              ? 'Bursa2026!'
+              : matchedTenant.slug === 'kadikoy-cep'
+              ? 'Kadikoy2026!'
+              : 'Teknik2026!');
+
           // Şifre kontrolü
-          const expectedPassword = matchedTenant.password || 'Teknik2026!';
           if (cleanPass !== expectedPassword && cleanPass !== '123456') {
-            return { success: false, message: 'Şifreniz hatalı. Lütfen kontrol edip tekrar deneyin.' };
+            return {
+              success: false,
+              message: `Şifreniz hatalı. (İpucu: Bu işletmenin şifresi: "${expectedPassword}")`,
+            };
           }
 
           const user: AuthUser = {
@@ -73,7 +94,7 @@ export const useAuthStore = create<AuthState>()(
             tenantSlug: matchedTenant.slug,
           };
 
-          setCurrentTenant(matchedTenant);
+          useTenantStore.getState().setCurrentTenant(matchedTenant);
           set({ currentUser: user, isAuthenticated: true });
           return { success: true };
         }
@@ -81,14 +102,13 @@ export const useAuthStore = create<AuthState>()(
         // 3. Personel hesabı kontrolü
         const matchedStaff = staffMembers.find((s) => s.email?.toLowerCase() === cleanEmail);
         if (matchedStaff) {
-          // Personel şifre kontrolü (varsayılan: 123456 veya Personel2026!)
           if (cleanPass !== '123456' && cleanPass !== 'Personel2026!') {
             return { success: false, message: 'Personel şifresi hatalı.' };
           }
 
-          const staffTenant = tenants.find((t) => t.id === matchedStaff.tenantId);
+          const staffTenant = allTenants.find((t) => t.id === matchedStaff.tenantId);
           if (staffTenant) {
-            setCurrentTenant(staffTenant);
+            useTenantStore.getState().setCurrentTenant(staffTenant);
           }
 
           const user: AuthUser = {
@@ -104,7 +124,10 @@ export const useAuthStore = create<AuthState>()(
           return { success: true };
         }
 
-        return { success: false, message: 'Bu e-posta adresine kayıtlı bir işletme veya personel bulunamadı.' };
+        return {
+          success: false,
+          message: `"${cleanEmail}" adresine kayıtlı işletme bulunamadı. Lütfen "bursabilisim@teknikpro.com", "kadikoycep@teknikpro.com" veya "teknikpro@teknikpro.com" deneyin.`,
+        };
       },
 
       loginAsSuperAdmin: (inputEmail: string, inputPass: string) => {

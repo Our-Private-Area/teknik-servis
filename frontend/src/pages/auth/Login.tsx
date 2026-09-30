@@ -112,6 +112,36 @@ export default function Login() {
               </>
             )}
           </button>
+
+          {/* Hızlı Test Girişleri */}
+          <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8, textAlign: 'center', fontWeight: 600 }}>
+              Hızlı Giriş Seçenekleri:
+            </div>
+            <div style={{ display: 'flex', gap: 6, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => { setEmail('bursabilisim@teknikpro.com'); setPassword('Bursa2026!'); }}
+                style={{ fontSize: 11, padding: '5px 10px', borderRadius: 6, background: 'rgba(139, 92, 246, 0.15)', color: '#c4b5fd', border: '1px solid rgba(139, 92, 246, 0.35)', cursor: 'pointer', fontWeight: 600 }}
+              >
+                🏢 Bursa Bilişim
+              </button>
+              <button
+                type="button"
+                onClick={() => { setEmail('kadikoycep@teknikpro.com'); setPassword('Kadikoy2026!'); }}
+                style={{ fontSize: 11, padding: '5px 10px', borderRadius: 6, background: 'rgba(249, 115, 22, 0.15)', color: '#fdba74', border: '1px solid rgba(249, 115, 22, 0.35)', cursor: 'pointer', fontWeight: 600 }}
+              >
+                📱 Kadıköy Cep
+              </button>
+              <button
+                type="button"
+                onClick={() => { setEmail('teknikpro@teknikpro.com'); setPassword('Teknik2026!'); }}
+                style={{ fontSize: 11, padding: '5px 10px', borderRadius: 6, background: 'rgba(0, 113, 227, 0.15)', color: '#7dd3fc', border: '1px solid rgba(0, 113, 227, 0.35)', cursor: 'pointer', fontWeight: 600 }}
+              >
+                ⚡ TeknikPro
+              </button>
+            </div>
+          </div>
         </form>
 
         {/* Footer */}
