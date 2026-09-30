@@ -6,10 +6,11 @@ import { useStaffStore } from '../../store/staffStore';
 import toast from 'react-hot-toast';
 import './Login.css';
 
+import { useAuthStore } from '../../store/authStore';
+
 export default function Login() {
   const navigate = useNavigate();
-  const { tenants, setCurrentTenant } = useTenantStore();
-  const { staffMembers } = useStaffStore();
+  const { loginAsTenant } = useAuthStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,38 +21,19 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    const cleanEmail = email.trim().toLowerCase();
+    const res = loginAsTenant(email, password);
 
-    // 1. İşletme e-postası eşleşmesi
-    let matchedTenant = tenants.find((t) => t.email?.toLowerCase() === cleanEmail);
-
-    // 2. Personel e-postası eşleşmesi
-    if (!matchedTenant) {
-      const matchedStaff = staffMembers.find((s) => s.email?.toLowerCase() === cleanEmail);
-      if (matchedStaff) {
-        matchedTenant = tenants.find((t) => t.id === matchedStaff.tenantId);
-      }
+    if (!res.success) {
+      toast.error(res.message || 'Giriş yapılamadı. Lütfen e-posta ve şifrenizi kontrol edin.');
+      setLoading(false);
+      return;
     }
 
-    // 3. Domain veya slug eşleşmesi (örn: kadikoycep -> kadikoy-cep)
-    if (!matchedTenant) {
-      matchedTenant = tenants.find((t) => {
-        const slugKey = t.slug.replace(/[^a-z0-9]/g, '');
-        return cleanEmail.includes(slugKey);
-      });
-    }
-
-    if (matchedTenant) {
-      setCurrentTenant(matchedTenant);
-      toast.success(`Hoş geldiniz! "${matchedTenant.name}" paneline giriş yapıldı.`);
-    } else {
-      toast.success('Giriş başarılı! Yönetim paneline yönlendiriliyorsunuz.');
-    }
-
+    toast.success('Giriş başarılı! Yönetim paneline aktarılıyorsunuz.');
     setTimeout(() => {
       setLoading(false);
       navigate('/panel');
-    }, 600);
+    }, 500);
   };
 
   return (
@@ -82,7 +64,7 @@ export default function Login() {
               id="email"
               type="email"
               className="login-card__input"
-              placeholder="ornek@teknikpro.com"
+              placeholder="bursabilisim@teknikpro.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required

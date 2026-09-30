@@ -3,8 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Crown, Eye, EyeOff, LogIn, ArrowLeft } from 'lucide-react';
 import './AdminLogin.css';
 
+import { useAuthStore } from '../../store/authStore';
+import toast from 'react-hot-toast';
+
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const { loginAsSuperAdmin } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -14,11 +18,19 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
 
-    // TODO: Firebase Auth entegrasyonu
+    const res = loginAsSuperAdmin(email, password);
+
+    if (!res.success) {
+      toast.error(res.message || 'Giriş başarısız!');
+      setLoading(false);
+      return;
+    }
+
+    toast.success('Süper Admin girişi başarılı! Yönlendiriliyorsunuz...');
     setTimeout(() => {
       setLoading(false);
       navigate('/super-admin');
-    }, 800);
+    }, 500);
   };
 
   return (

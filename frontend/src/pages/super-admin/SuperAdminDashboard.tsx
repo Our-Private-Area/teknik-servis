@@ -31,8 +31,9 @@ import {
   Image as ImageIcon,
   MessageCircle,
 } from 'lucide-react';
-import { useTenantStore } from '../../store/tenantStore';
+import { useTenantStore, getTenantDefaultEmail, PLATFORM_DOMAIN } from '../../store/tenantStore';
 import { usePlatformStore } from '../../store/platformStore';
+import { useAuthStore } from '../../store/authStore';
 import { Tenant } from '../../types';
 import toast from 'react-hot-toast';
 import './SuperAdminDashboard.css';
@@ -41,6 +42,7 @@ export default function SuperAdminDashboard() {
   const navigate = useNavigate();
   const { tenants, currentTenant, setCurrentTenant, createTenant, updateTenant, updateCurrentTenant } = useTenantStore();
   const { transactions, addTransaction, deleteTransaction } = usePlatformStore();
+  const { logout } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<'tenants' | 'finances'>('tenants');
   const [searchTenant, setSearchTenant] = useState('');
@@ -68,6 +70,8 @@ export default function SuperAdminDashboard() {
   const [district, setDistrict] = useState('Kadıköy');
   const [address, setAddress] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [tenantPassword, setTenantPassword] = useState('Teknik2026!');
   const [workingHours, setWorkingHours] = useState('Hafta içi 09:00 - 19:30, Cumartesi 10:00 - 18:00');
   const [logoUrl, setLogoUrl] = useState('');
   const [coverImageUrl, setCoverImageUrl] = useState('');
@@ -133,6 +137,9 @@ export default function SuperAdminDashboard() {
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '');
       setSlug(generated);
+      if (!loginEmail) {
+        setLoginEmail(getTenantDefaultEmail(generated));
+      }
     }
   };
 
@@ -153,6 +160,8 @@ export default function SuperAdminDashboard() {
     setDistrict('Kadıköy');
     setAddress('');
     setGoogleMapsUrl('');
+    setLoginEmail('');
+    setTenantPassword('Teknik2026!');
     setWorkingHours('Hafta içi 09:00 - 19:30, Cumartesi 10:00 - 18:00');
     setLogoUrl('');
     setCoverImageUrl('');
@@ -182,6 +191,8 @@ export default function SuperAdminDashboard() {
     setDistrict(t.district || 'Kadıköy');
     setAddress(t.address || '');
     setGoogleMapsUrl(t.googleMapsUrl || '');
+    setLoginEmail(t.loginEmail || getTenantDefaultEmail(t.slug));
+    setTenantPassword(t.password || 'Teknik2026!');
     setWorkingHours(t.workingHours || 'Hafta içi 09:00 - 19:30, Cumartesi 10:00 - 18:00');
     setLogoUrl(t.logoUrl || '');
     setCoverImageUrl(t.coverImageUrl || '');
@@ -236,6 +247,8 @@ export default function SuperAdminDashboard() {
           district: district || undefined,
           address: address || undefined,
           googleMapsUrl: googleMapsUrl.trim() || undefined,
+          loginEmail: loginEmail.trim() || undefined,
+          password: tenantPassword.trim() || undefined,
           workingHours: workingHours || undefined,
           shortDescription: shortDescription || undefined,
           description: description || undefined,
@@ -268,6 +281,8 @@ export default function SuperAdminDashboard() {
           district: district || undefined,
           address: address || undefined,
           googleMapsUrl: googleMapsUrl.trim() || undefined,
+          loginEmail: loginEmail.trim() || undefined,
+          password: tenantPassword.trim() || undefined,
           workingHours: workingHours || undefined,
           shortDescription: shortDescription || undefined,
           description: description || undefined,
@@ -365,6 +380,30 @@ export default function SuperAdminDashboard() {
               <span>Aktif Dükkan Paneline Git</span>
               <ArrowRight size={14} />
             </Link>
+            <button
+              type="button"
+              onClick={() => {
+                logout();
+                toast.success('Süper Admin oturumu kapatıldı.');
+                navigate('/admin-giris');
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 14px',
+                borderRadius: 8,
+                background: 'rgba(239, 68, 68, 0.15)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              <LogOut size={14} />
+              <span>Çıkış Yap</span>
+            </button>
           </div>
         </div>
       </header>
@@ -513,7 +552,7 @@ export default function SuperAdminDashboard() {
                 <tr>
                   <th>İşletme Unvanı</th>
                   <th>Özel Link (Slug)</th>
-                  <th>İletişim</th>
+                  <th>Giriş Bilgileri (Giriş Mail & Şifre)</th>
                   <th>Paket & Lisans</th>
                   <th>Durum</th>
                   <th>Bitiş Tarihi</th>
@@ -588,8 +627,16 @@ export default function SuperAdminDashboard() {
                         </td>
 
                         <td>
-                          <div style={{ fontSize: 12, color: '#e2e8f0' }}>{t.phone}</div>
-                          {t.email && <div style={{ fontSize: 11, color: '#64748b' }}>{t.email}</div>}
+                          <div style={{ fontFamily: 'monospace', fontSize: 12, color: '#38bdf8', fontWeight: 600 }}>
+                            {t.loginEmail || getTenantDefaultEmail(t.slug)}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                            <span style={{ fontSize: 11, color: '#94a3b8' }}>Şifre:</span>
+                            <span style={{ fontSize: 11, background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4, color: '#fbbf24', fontFamily: 'monospace' }}>
+                              {t.password || 'Teknik2026!'}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{t.phone}</div>
                         </td>
 
                         <td>
@@ -848,6 +895,33 @@ export default function SuperAdminDashboard() {
                       style={{ padding: '10px 12px', borderRadius: 8, background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', color: '#38bdf8', fontFamily: 'monospace' }}
                     />
                     <span style={{ fontSize: 11, color: '#64748b' }}>Web adresi: /{slug || 'slug'}</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#38bdf8' }}>Giriş E-postası (Panele Giriş)</label>
+                    <input
+                      type="email"
+                      placeholder={`örn: bursabilisim@${PLATFORM_DOMAIN}`}
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      style={{ padding: '10px 12px', borderRadius: 8, background: '#0f172a', border: '1px solid #38bdf8', color: 'white' }}
+                    />
+                    <span style={{ fontSize: 11, color: '#64748b' }}>Örn: bursabilisim@{PLATFORM_DOMAIN}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: '#fbbf24' }}>Giriş Şifresi</label>
+                    <input
+                      type="text"
+                      placeholder="Şifre belirleyin (örn: Bursa2026!)"
+                      value={tenantPassword}
+                      onChange={(e) => setTenantPassword(e.target.value)}
+                      required
+                      style={{ padding: '10px 12px', borderRadius: 8, background: '#0f172a', border: '1px solid rgba(251,191,36,0.5)', color: 'white' }}
+                    />
+                    <span style={{ fontSize: 11, color: '#64748b' }}>İşletmenin yönetim paneline giriş şifresi</span>
                   </div>
                 </div>
 

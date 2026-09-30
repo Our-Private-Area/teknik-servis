@@ -22,6 +22,7 @@ import TenantPublicPage from './pages/tenant-public/TenantPublicPage';
 import TrackingPage from './pages/customer/TrackingPage';
 import BookingPage from './pages/customer/BookingPage';
 import { seedFirestoreIfEmpty } from './services/seedFirestore';
+import { TenantProtectedRoute, SuperAdminProtectedRoute } from './components/auth/ProtectedRoute';
 
 export default function App() {
   useEffect(() => {
@@ -45,12 +46,26 @@ export default function App() {
         <Route path="/takip" element={<Navigate to="/servis-sorgulama" replace />} />
         <Route path="/takip/:id" element={<TrackingPage />} />
 
-        {/* Platform Sahibi / Super Admin Paneli */}
-        <Route path="/super-admin" element={<SuperAdminDashboard />} />
+        {/* Platform Sahibi / Super Admin Paneli (Yetki Korumalı) */}
+        <Route
+          path="/super-admin"
+          element={
+            <SuperAdminProtectedRoute>
+              <SuperAdminDashboard />
+            </SuperAdminProtectedRoute>
+          }
+        />
         <Route path="/admin" element={<Navigate to="/super-admin" replace />} />
 
-        {/* İşletme Yönetim Paneli */}
-        <Route path="/panel" element={<AdminLayout />}>
+        {/* İşletme Yönetim Paneli (Yetki Korumalı) */}
+        <Route
+          path="/panel"
+          element={
+            <TenantProtectedRoute>
+              <AdminLayout />
+            </TenantProtectedRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="web-sitesi" element={<WebsiteSettings />} />
           <Route path="servisler" element={<ServiceList />} />

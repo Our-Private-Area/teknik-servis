@@ -18,14 +18,16 @@ import {
 } from 'lucide-react';
 import './Sidebar.css';
 
+import { useAuthStore } from '../../store/authStore';
+
 interface NavItem {
   path: string;
   label: string;
   icon: React.ReactNode;
+  superAdminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { path: '/super-admin', label: '👑 Süper Admin', icon: <Crown size={20} color="#fbbf24" /> },
   { path: '/panel', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
   { path: '/panel/web-sitesi', label: 'Web Sayfam & Tema', icon: <Globe size={20} color="#38bdf8" /> },
   { path: '/panel/servisler', label: 'Servisler', icon: <Wrench size={20} /> },
@@ -34,13 +36,17 @@ const navItems: NavItem[] = [
   { path: '/panel/personel', label: 'Personel', icon: <UserCog size={20} /> },
   { path: '/panel/kasa', label: 'Kasa', icon: <Wallet size={20} /> },
   { path: '/panel/raporlar', label: 'Raporlar', icon: <BarChart3 size={20} /> },
-  { path: '/panel/isletmeler', label: 'İşletmeler (SaaS)', icon: <Building2 size={20} /> },
+  { path: '/panel/isletmeler', label: 'İşletmeler (SaaS)', icon: <Building2 size={20} />, superAdminOnly: true },
   { path: '/panel/ayarlar', label: 'Ayarlar', icon: <Settings size={20} /> },
 ];
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { currentUser } = useAuthStore();
+
+  const isSuperAdmin = currentUser?.role === 'superadmin';
+  const visibleNavItems = navItems.filter((item) => !item.superAdminOnly || isSuperAdmin);
 
   const isActive = (path: string) => {
     if (path === '/panel') return location.pathname === '/panel';
@@ -65,7 +71,7 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="sidebar__nav">
         <ul className="sidebar__list">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <li key={item.path}>
               <NavLink
                 to={item.path}

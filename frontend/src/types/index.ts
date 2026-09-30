@@ -76,6 +76,8 @@ export interface Tenant {
   brandName?: string;
   phone: string;
   email?: string;
+  loginEmail?: string;
+  password?: string;
   address?: string;
   cargoCompany?: string;
   cargoCode?: string;

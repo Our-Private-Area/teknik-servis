@@ -4,6 +4,13 @@ import { Tenant } from '../types';
 import { db } from '../services/firebase';
 import { doc, setDoc, onSnapshot, collection } from 'firebase/firestore';
 
+export const PLATFORM_DOMAIN = import.meta.env.VITE_PLATFORM_DOMAIN || 'teknikpro.com';
+
+export const getTenantDefaultEmail = (slug: string, domain = PLATFORM_DOMAIN) => {
+  const clean = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return `${clean}@${domain}`;
+};
+
 export const DEFAULT_TENANT: Tenant = {
   id: 'tenant-default',
   slug: 'teknikpro',
@@ -11,6 +18,8 @@ export const DEFAULT_TENANT: Tenant = {
   brandName: 'TeknikPro',
   phone: '0850 300 40 50',
   email: 'destek@teknikpro.com',
+  loginEmail: 'teknikpro@teknikpro.com',
+  password: 'Teknik2026!',
   address: 'Kadıköy Rıhtım Cad. No: 42, İstanbul',
   cargoCompany: 'Yurtiçi Kargo',
   cargoCode: 'YK-482910',
@@ -51,6 +60,8 @@ export const INITIAL_TENANTS: Tenant[] = [
     brandName: 'Kadıköy Cep',
     phone: '0216 333 4455',
     email: 'info@kadikoycep.com',
+    loginEmail: 'kadikoycep@teknikpro.com',
+    password: 'Kadikoy2026!',
     address: 'Moda Cad. No: 18, Kadıköy, İstanbul',
     cargoCompany: 'Aras Kargo',
     cargoCode: 'AR-9921',
@@ -87,6 +98,8 @@ export const INITIAL_TENANTS: Tenant[] = [
     brandName: 'Bursa Bilişim',
     phone: '0224 444 8899',
     email: 'destek@bursabilisim.com',
+    loginEmail: 'bursabilisim@teknikpro.com',
+    password: 'Bursa2026!',
     address: 'FSM Bulvarı No: 55, Nilüfer, Bursa',
     cargoCompany: 'MNG Kargo',
     cargoCode: 'MNG-7731',
