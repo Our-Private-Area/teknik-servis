@@ -1,5 +1,6 @@
 /* =============================================
    WebsiteSettings.css — İşletme Web Sitesi & Tema Editörü
+   (Light & Dark Mode Destekli)
    ============================================= */
 
 .ws-page {
@@ -23,20 +24,34 @@
   gap: 16px;
 }
 
+[data-theme="light"] .ws-header {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+  border-color: #bae6fd;
+  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.06);
+}
+
 .ws-header__info h1 {
   font-size: 22px;
   font-weight: 800;
   margin: 0 0 6px;
-  color: white;
+  color: var(--text-primary, #f1f5f9);
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+[data-theme="light"] .ws-header__info h1 {
+  color: #0f172a;
+}
+
 .ws-header__info p {
   margin: 0;
   font-size: 13px;
-  color: #94a3b8;
+  color: var(--text-secondary, #94a3b8);
+}
+
+[data-theme="light"] .ws-header__info p {
+  color: #475569;
 }
 
 .ws-header__actions {
@@ -55,12 +70,24 @@
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 13px;
+  color: #cbd5e1;
+}
+
+[data-theme="light"] .ws-link-box {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .ws-link-box code {
   color: #38bdf8;
   font-weight: 600;
   font-family: monospace;
+}
+
+[data-theme="light"] .ws-link-box code {
+  color: #0284c7;
 }
 
 .ws-btn-icon {
@@ -77,8 +104,13 @@
 }
 
 .ws-btn-icon:hover {
-  color: white;
+  color: var(--text-primary, white);
   background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] .ws-btn-icon:hover {
+  color: #0f172a;
+  background: #f1f5f9;
 }
 
 .ws-btn-visit {
@@ -105,7 +137,7 @@
 .ws-tabs {
   display: flex;
   gap: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08));
   padding-bottom: 1px;
   overflow-x: auto;
 }
@@ -117,7 +149,7 @@
   padding: 10px 18px;
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-muted, #94a3b8);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -128,7 +160,15 @@
 }
 
 .ws-tab:hover {
-  color: #f1f5f9;
+  color: var(--text-primary, #f1f5f9);
+}
+
+[data-theme="light"] .ws-tab {
+  color: #64748b;
+}
+
+[data-theme="light"] .ws-tab:hover {
+  color: #0f172a;
 }
 
 .ws-tab--active {
@@ -136,10 +176,15 @@
   border-bottom-color: #38bdf8;
 }
 
+[data-theme="light"] .ws-tab--active {
+  color: #0284c7;
+  border-bottom-color: #0284c7;
+}
+
 /* Card Section */
 .ws-card {
   background: var(--bg-card, #111827);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08));
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -147,14 +192,24 @@
   gap: 20px;
 }
 
+[data-theme="light"] .ws-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
 .ws-card__title {
   font-size: 16px;
   font-weight: 700;
-  color: white;
+  color: var(--text-primary, white);
   margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+[data-theme="light"] .ws-card__title {
+  color: #0f172a;
 }
 
 .ws-form-grid {
@@ -183,25 +238,48 @@
 .ws-field label {
   font-size: 12px;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-secondary, #94a3b8);
+}
+
+[data-theme="light"] .ws-field label {
+  color: #334155;
 }
 
 .ws-field input,
 .ws-field textarea {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-input, rgba(0, 0, 0, 0.3));
+  border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.1));
   padding: 10px 14px;
   border-radius: 10px;
-  color: white;
+  color: var(--text-primary, white);
   font-size: 13px;
   outline: none;
   font-family: inherit;
-  transition: border-color 0.2s;
+  transition: all 0.2s;
+}
+
+[data-theme="light"] .ws-field input,
+[data-theme="light"] .ws-field textarea {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="light"] .ws-field input::placeholder,
+[data-theme="light"] .ws-field textarea::placeholder {
+  color: #94a3b8;
 }
 
 .ws-field input:focus,
 .ws-field textarea:focus {
   border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+}
+
+[data-theme="light"] .ws-field input:focus,
+[data-theme="light"] .ws-field textarea:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
 }
 
 /* Color Presets */
@@ -227,14 +305,31 @@
   transition: all 0.2s;
 }
 
+[data-theme="light"] .ws-preset-btn {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
 .ws-preset-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.25);
 }
 
+[data-theme="light"] .ws-preset-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
 .ws-preset-btn--active {
   border-width: 1.5px;
   box-shadow: 0 0 16px rgba(0, 113, 227, 0.3);
+}
+
+[data-theme="light"] .ws-preset-btn--active {
+  background: #e0f2fe;
+  border-color: #0284c7;
+  color: #0369a1;
 }
 
 /* Live Preview Box */
@@ -265,7 +360,7 @@
   justify-content: flex-end;
   gap: 12px;
   padding-top: 10px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--border-primary, rgba(255, 255, 255, 0.06));
 }
 
 .ws-btn-save {
