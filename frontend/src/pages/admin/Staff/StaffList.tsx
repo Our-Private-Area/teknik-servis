@@ -51,7 +51,7 @@ export default function StaffList() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '-0.5px' }}>
             Personel & Teknisyenler ({staffMembers.length})
@@ -67,11 +67,12 @@ export default function StaffList() {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
+            justifyContent: 'center',
             gap: 6,
             background: 'var(--brand-primary, #0071e3)',
             color: 'white',
             border: 'none',
-            padding: '9px 16px',
+            padding: '10px 18px',
             borderRadius: 8,
             fontWeight: 600,
             fontSize: 13,
@@ -99,7 +100,7 @@ export default function StaffList() {
           <p style={{ fontSize: 13 }}>Yukarıdaki butona tıklayarak dükkanınız için yeni teknisyen veya personel ekleyebilirsiniz.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '18px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))', gap: '16px' }}>
           {staffMembers.map((staff) => (
             <div
               key={staff.id}
@@ -214,9 +215,11 @@ export default function StaffList() {
               background: '#0f172a',
               border: '1px solid rgba(255,255,255,0.12)',
               borderRadius: 14,
-              padding: 24,
+              padding: 20,
               width: '100%',
-              maxWidth: 480,
+              maxWidth: 'min(94vw, 480px)',
+              maxHeight: '85vh',
+              overflowY: 'auto',
             }}
             onClick={(e) => e.stopPropagation()}
           >

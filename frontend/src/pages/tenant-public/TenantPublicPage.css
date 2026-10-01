@@ -758,18 +758,35 @@
 
 /* ---- Responsive ---- */
 @media (max-width: 768px) {
+  .tp-nav__inner {
+    padding: 0 14px;
+    height: 56px;
+  }
+
+  .tp-nav__name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 15px;
+  }
+
   .tp-nav__link {
     padding: 6px 10px;
     font-size: 12px;
   }
 
   .tp-hero {
-    padding: 120px 16px 60px;
+    padding: 100px 16px 50px;
+  }
+
+  .tp-hero__title {
+    font-size: 32px;
   }
 
   .tp-about__content {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 24px;
   }
 
   .tp-how__steps {
@@ -788,6 +805,20 @@
 }
 
 @media (max-width: 480px) {
+  .tp-nav__name {
+    max-width: 110px;
+  }
+
+  .tp-hero__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .tp-hero__btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .tp-how__steps {
     grid-template-columns: 1fr;
   }
@@ -796,3 +827,4 @@
     grid-template-columns: 1fr;
   }
 }
+

@@ -658,3 +658,52 @@
   font-weight: 600;
   cursor: pointer;
 }
+
+/* Service Detail Mobile Responsive */
+@media (max-width: 768px) {
+  .service-detail-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .service-detail-header__actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .service-detail-header__actions .btn-header-action,
+  .service-detail-header__actions .btn-header-save {
+    flex: 1;
+    justify-content: center;
+    min-width: 120px;
+  }
+
+  .status-form-row {
+    flex-direction: column;
+  }
+
+  .status-select,
+  .status-note-input,
+  .btn-update-status {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .detail-info-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .print-modal-card {
+    padding: 16px;
+    max-height: 88vh;
+    overflow-y: auto;
+  }
+
+  .voucher-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

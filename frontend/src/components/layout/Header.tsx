@@ -1,4 +1,4 @@
-import { Search, Bell, Moon, Sun, User, Building2, Crown, LogOut } from 'lucide-react';
+import { Search, Bell, Moon, Sun, User, Building2, Crown, LogOut, Menu } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../../store/themeStore';
 import { useTenantStore } from '../../store/tenantStore';
@@ -9,9 +9,10 @@ import './Header.css';
 interface HeaderProps {
   title?: string;
   subtitle?: string;
+  onToggleSidebar?: () => void;
 }
 
-export default function Header({ title, subtitle }: HeaderProps) {
+export default function Header({ title, subtitle, onToggleSidebar }: HeaderProps) {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useThemeStore();
   const { currentTenant } = useTenantStore();
@@ -28,48 +29,35 @@ export default function Header({ title, subtitle }: HeaderProps) {
   return (
     <header className="header">
       <div className="header__left">
+        {/* Mobile Hamburger Button */}
+        <button
+          type="button"
+          className="header__menu-btn"
+          onClick={onToggleSidebar}
+          aria-label="Menüyü Aç"
+        >
+          <Menu size={22} />
+        </button>
+
         {isSuperAdmin && (
           <Link
             to="/super-admin"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '5px 12px',
-              borderRadius: 8,
-              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.25))',
-              color: '#fbbf24',
-              textDecoration: 'none',
-              fontSize: 12,
-              fontWeight: 700,
-              border: '1px solid rgba(245, 158, 11, 0.4)',
-              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)',
-            }}
+            className="header__superadmin-badge"
             title="Platform Sahibi Paneline Dön (Gelir / Gider & Tüm İşletmeler)"
           >
             <Crown size={14} />
-            <span>Süper Admin Paneli</span>
+            <span className="header__badge-label">Süper Admin</span>
           </Link>
         )}
 
         <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '5px 12px',
-            borderRadius: 8,
-            background: 'rgba(0, 113, 227, 0.12)',
-            color: '#38bdf8',
-            fontSize: 12,
-            fontWeight: 600,
-            border: '1px solid rgba(56, 189, 248, 0.2)',
-          }}
+          className="header__tenant-badge"
           title={currentTenant.name}
         >
-          <Building2 size={14} />
-          <span>{currentTenant.brandName || currentTenant.name}</span>
+          <Building2 size={14} className="header__tenant-icon" />
+          <span className="header__tenant-text">{currentTenant.brandName || currentTenant.name}</span>
         </div>
+
         {title && (
           <div className="header__title-group">
             <h1 className="header__title">{title}</h1>

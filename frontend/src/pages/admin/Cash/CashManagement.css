@@ -93,7 +93,8 @@
   background: var(--bg-card, #111827);
   border: 1px solid var(--border-primary, rgba(255, 255, 255, 0.08));
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .cash-table-header {
@@ -109,6 +110,7 @@
 .cash-table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 600px;
 }
 
 .cash-table th {
@@ -204,3 +206,17 @@
   border-color: #ef4444;
   color: #f87171;
 }
+
+@media (max-width: 640px) {
+  .cash-page__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .cash-page__header .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

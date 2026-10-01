@@ -157,7 +157,7 @@ export default function TenantManagement() {
       </div>
 
       {/* Stats Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '16px' }}>
         <div style={{ background: 'var(--bg-card, #111827)', border: '1px solid var(--border-primary, rgba(255,255,255,0.08))', borderRadius: '12px', padding: '18px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#38bdf8' }}>
             <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase' }}>Kayıtlı İşletmeler</span>
@@ -438,7 +438,7 @@ export default function TenantManagement() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="grid-stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>URL Slug (Özel Link) *</label>
                   <input
@@ -465,7 +465,7 @@ export default function TenantManagement() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div className="grid-stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                   <label style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>Anlaşmalı Kargo Firması</label>
                   <input

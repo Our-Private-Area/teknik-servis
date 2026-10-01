@@ -61,8 +61,8 @@
 
 .customer-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
 }
 
 .customer-card {
@@ -202,3 +202,32 @@
   gap: 10px;
   margin-top: 10px;
 }
+
+@media (max-width: 640px) {
+  .customer-page__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .customer-page__header .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .customer-toolbar {
+    flex-direction: column;
+  }
+
+  .customer-search {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .modal-card {
+    padding: 18px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+}
+

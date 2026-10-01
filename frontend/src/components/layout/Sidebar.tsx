@@ -13,8 +13,8 @@ import {
   ChevronRight,
   Zap,
   Building2,
-  Crown,
   Globe,
+  X,
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -40,7 +40,12 @@ const navItems: NavItem[] = [
   { path: '/panel/ayarlar', label: 'Ayarlar', icon: <Settings size={20} /> },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { currentUser } = useAuthStore();
@@ -53,50 +58,78 @@ export default function Sidebar() {
     return location.pathname.startsWith(path);
   };
 
+  const handleLinkClick = () => {
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
-    <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''}`}>
-      {/* Brand */}
-      <div className="sidebar__brand">
-        <div className="sidebar__logo">
-          <Zap size={22} />
-        </div>
-        {!collapsed && (
-          <div className="sidebar__brand-text">
-            <span className="sidebar__brand-name">TeknikPro</span>
-            <span className="sidebar__brand-sub">Servis Yönetimi</span>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div
+          className="sidebar__backdrop"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside className={`sidebar ${collapsed ? 'sidebar--collapsed' : ''} ${isOpen ? 'sidebar--open' : ''}`}>
+        {/* Brand */}
+        <div className="sidebar__brand">
+          <div className="sidebar__logo">
+            <Zap size={22} />
           </div>
-        )}
-      </div>
+          {!collapsed && (
+            <div className="sidebar__brand-text">
+              <span className="sidebar__brand-name">TeknikPro</span>
+              <span className="sidebar__brand-sub">Servis Yönetimi</span>
+            </div>
+          )}
 
-      {/* Navigation */}
-      <nav className="sidebar__nav">
-        <ul className="sidebar__list">
-          {visibleNavItems.map((item) => (
-            <li key={item.path}>
-              <NavLink
-                to={item.path}
-                end={item.path === '/panel'}
-                className={`sidebar__link ${isActive(item.path) ? 'sidebar__link--active' : ''}`}
-                title={collapsed ? item.label : undefined}
-              >
-                <span className="sidebar__link-icon">{item.icon}</span>
-                {!collapsed && <span className="sidebar__link-label">{item.label}</span>}
-                {isActive(item.path) && <span className="sidebar__link-indicator" />}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-      </nav>
+          {/* Mobile Close Button */}
+          <button
+            type="button"
+            className="sidebar__mobile-close"
+            onClick={onClose}
+            aria-label="Menüyü Kapat"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-      {/* Collapse Toggle */}
-      <button
-        className="sidebar__toggle"
-        onClick={() => setCollapsed(!collapsed)}
-        aria-label={collapsed ? 'Menüyü genişlet' : 'Menüyü daralt'}
-      >
-        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        {!collapsed && <span>Daralt</span>}
-      </button>
-    </aside>
+        {/* Navigation */}
+        <nav className="sidebar__nav">
+          <ul className="sidebar__list">
+            {visibleNavItems.map((item) => (
+              <li key={item.path}>
+                <NavLink
+                  to={item.path}
+                  end={item.path === '/panel'}
+                  className={`sidebar__link ${isActive(item.path) ? 'sidebar__link--active' : ''}`}
+                  title={collapsed ? item.label : undefined}
+                  onClick={handleLinkClick}
+                >
+                  <span className="sidebar__link-icon">{item.icon}</span>
+                  {(!collapsed || isOpen) && <span className="sidebar__link-label">{item.label}</span>}
+                  {isActive(item.path) && <span className="sidebar__link-indicator" />}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Collapse Toggle (Desktop only) */}
+        <button
+          className="sidebar__toggle"
+          onClick={() => setCollapsed(!collapsed)}
+          aria-label={collapsed ? 'Menüyü genişlet' : 'Menüyü daralt'}
+        >
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {!collapsed && <span>Daralt</span>}
+        </button>
+      </aside>
+    </>
   );
 }

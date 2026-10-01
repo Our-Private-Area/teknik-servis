@@ -25,6 +25,7 @@
   }
 
   .admin-layout__content {
-    padding: var(--space-4);
+    padding: 14px 12px 40px;
+    margin-top: 58px;
   }
 }

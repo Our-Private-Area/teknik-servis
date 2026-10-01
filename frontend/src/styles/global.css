@@ -220,3 +220,75 @@ button {
 .animate-scale-in {
   animation: scaleIn var(--transition-base) forwards;
 }
+
+/* =============================================
+   Mobile & Responsive Helpers
+   ============================================= */
+
+/* Responsive Table Wrapper */
+.table-responsive,
+.table-scroll-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+.table-responsive::-webkit-scrollbar,
+.table-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-responsive table {
+  min-width: 600px;
+}
+
+/* Modal Responsive Standard */
+@media (max-width: 640px) {
+  .modal-overlay,
+  .print-modal-overlay,
+  .super-modal-backdrop {
+    padding: 12px !important;
+    align-items: flex-end !important;
+  }
+
+  .modal-card,
+  .print-modal-card,
+  .super-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    padding: 18px !important;
+  }
+}
+
+/* Prevent unwanted iOS Safari zooming on focus */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Responsive Grid helpers */
+.grid-stack-mobile {
+  display: grid;
+}
+
+@media (max-width: 768px) {
+  .grid-stack-mobile {
+    grid-template-columns: 1fr !important;
+  }
+}
+

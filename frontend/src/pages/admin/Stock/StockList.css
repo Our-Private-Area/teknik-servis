@@ -164,3 +164,34 @@
   font-size: 11px;
   color: var(--text-muted, #64748b);
 }
+
+.stock-table {
+  min-width: 680px;
+}
+
+@media (max-width: 640px) {
+  .stock-page__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .stock-page__header .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stock-toolbar {
+    flex-direction: column;
+  }
+
+  .stock-search {
+    min-width: 100%;
+    width: 100%;
+  }
+
+  .stock-select {
+    width: 100%;
+  }
+}
+

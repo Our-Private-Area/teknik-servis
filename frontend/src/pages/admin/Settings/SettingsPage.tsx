@@ -103,12 +103,12 @@ export default function SettingsPage() {
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.2)', padding: '12px 16px', borderRadius: 8, marginTop: 8 }}>
-            <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0, 0, 0, 0.2)', padding: '12px 16px', borderRadius: 8, marginTop: 8, flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: '12px', color: 'var(--text-secondary, #94a3b8)' }}>Müşterileriniz İçin Online Randevu Linkiniz:</div>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#38bdf8', marginTop: 2 }}>{bookingUrl}</div>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#38bdf8', marginTop: 2, wordBreak: 'break-all' }}>{bookingUrl}</div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button
                 type="button"
                 onClick={copyBookingLink}
@@ -186,7 +186,7 @@ export default function SettingsPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div className="grid-stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #94a3b8)' }}>Firma Ticari Unvanı</label>
                 <input
@@ -221,7 +221,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            <div className="grid-stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #94a3b8)' }}>Müşteri İletişim Telefonu</label>
                 <input
@@ -280,7 +280,7 @@ export default function SettingsPage() {
             <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>Kargo ile Gönderim Ayarları (Online Randevu)</h3>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div className="grid-stack-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #94a3b8)' }}>Anlaşmalı Kargo Firması</label>
               <input
@@ -369,6 +369,7 @@ export default function SettingsPage() {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
+              justifyContent: 'center',
               gap: '8px',
               background: '#0071e3',
               color: 'white',
@@ -379,6 +380,7 @@ export default function SettingsPage() {
               fontWeight: 600,
               fontSize: '14px',
               boxShadow: '0 2px 10px rgba(0, 113, 227, 0.3)',
+              minHeight: '44px',
             }}
           >
             <Save size={16} />

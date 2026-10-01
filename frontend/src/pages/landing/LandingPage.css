@@ -740,3 +740,31 @@
     padding: 40px 20px;
   }
 }
+
+@media (max-width: 480px) {
+  .landing-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    padding: 0 16px 50px;
+  }
+
+  .landing-stat__val {
+    font-size: 26px;
+  }
+
+  .landing-stat__label {
+    font-size: 11px;
+  }
+
+  .landing-hero__actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .landing-hero__btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
