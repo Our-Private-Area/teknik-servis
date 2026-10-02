@@ -89,6 +89,9 @@ export default function WebsiteSettings() {
   const [primaryColor, setPrimaryColor] = useState(currentTenant.theme?.primaryColor || '#0071e3');
   const [secondaryColor, setSecondaryColor] = useState(currentTenant.theme?.secondaryColor || '#06b6d4');
   const [accentColor, setAccentColor] = useState(currentTenant.theme?.accentColor || '#f59e0b');
+  const [applyToAdminPanel, setApplyToAdminPanel] = useState(
+    currentTenant.theme?.adminThemeMode === 'website_colors'
+  );
   const [logoUrl, setLogoUrl] = useState(currentTenant.logoUrl || '');
   const [coverImageUrl, setCoverImageUrl] = useState(currentTenant.coverImageUrl || '');
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -155,6 +158,7 @@ export default function WebsiteSettings() {
     setPrimaryColor(currentTenant.theme?.primaryColor || '#0071e3');
     setSecondaryColor(currentTenant.theme?.secondaryColor || '#06b6d4');
     setAccentColor(currentTenant.theme?.accentColor || '#f59e0b');
+    setApplyToAdminPanel(currentTenant.theme?.adminThemeMode === 'website_colors');
     setLogoUrl(currentTenant.logoUrl || '');
     setCoverImageUrl(currentTenant.coverImageUrl || '');
     setBrandName(currentTenant.brandName || currentTenant.name || '');
@@ -365,11 +369,17 @@ export default function WebsiteSettings() {
         logoUrl: logoUrl.trim() || undefined,
         coverImageUrl: coverImageUrl.trim() || undefined,
         theme: {
+          ...currentTenant.theme,
           primaryColor,
           secondaryColor,
           accentColor,
           gradientFrom: primaryColor,
           gradientTo: secondaryColor,
+          adminThemeMode: applyToAdminPanel
+            ? 'website_colors'
+            : currentTenant.theme?.adminThemeMode === 'website_colors'
+            ? 'default'
+            : currentTenant.theme?.adminThemeMode || 'default',
         },
         workingHours: workingHours.trim() || undefined,
         warrantyDays: Number(warrantyDays),
@@ -588,6 +598,37 @@ export default function WebsiteSettings() {
                     style={{ fontFamily: 'monospace' }}
                   />
                 </div>
+              </div>
+
+              {/* Yönetim Paneline Uygula Seçeneği */}
+              <div
+                style={{
+                  gridColumn: '1 / -1',
+                  padding: '12px 16px',
+                  borderRadius: 8,
+                  background: 'rgba(59, 130, 246, 0.08)',
+                  border: '1px solid rgba(59, 130, 246, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 12,
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'white', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Sparkles size={14} color="#38bdf8" />
+                    <span>Bu renkleri Yönetim Panelimde de kullan</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>
+                    Seçtiğiniz web sitesi ana rengi ({primaryColor}) yönetim panelinizin menü ve buton vurgularına anında yansıtılır.
+                  </div>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={applyToAdminPanel}
+                  onChange={(e) => setApplyToAdminPanel(e.target.checked)}
+                  style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#0071e3' }}
+                />
               </div>
             </div>
 

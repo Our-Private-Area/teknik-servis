@@ -67,6 +67,8 @@ export interface TenantTheme {
   gradientFrom?: string;
   gradientTo?: string;
   darkMode?: boolean;
+  adminThemeMode?: 'default' | 'website_colors' | 'custom';
+  adminPrimaryColor?: string;
 }
 
 export interface Tenant {
