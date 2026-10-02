@@ -2,8 +2,13 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    // Halka açık medya görselleri okunabilir
     match /{allPaths=**} {
-      allow read, write: if true;
+      allow read: if true;
+      // Sadece giriş yapmış kullanıcılar ve maksimum 5MB boyutunda geçerli görseller yükleyebilir
+      allow write: if request.auth != null
+                    && request.resource.size < 5 * 1024 * 1024
+                    && request.resource.contentType.matches('image/.*');
     }
   }
 }

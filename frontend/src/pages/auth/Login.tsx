@@ -21,7 +21,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    const res = loginAsTenant(email, password);
+    const res = await loginAsTenant(email, password);
 
     if (!res.success) {
       toast.error(res.message || 'Giriş yapılamadı. Lütfen e-posta ve şifrenizi kontrol edin.');

@@ -133,19 +133,19 @@ export default function TenantPublicPage() {
     ['--tp-gradient-to' as any]: tenant?.theme?.gradientTo || tenant?.theme?.secondaryColor || '#06b6d4',
   };
 
-  // Google Maps URL formatting
+  // Google Maps URL formatting (güvenli URL kontrolü)
   const getEmbedMapUrl = () => {
-    if (tenant.googleMapsUrl && tenant.googleMapsUrl.includes('google.com/maps/embed')) {
+    if (tenant.googleMapsUrl && tenant.googleMapsUrl.startsWith('https://') && tenant.googleMapsUrl.includes('google.com/maps/embed')) {
       return tenant.googleMapsUrl;
     }
     const query = tenant.address
       ? `${tenant.address}, ${tenant.district || ''} ${tenant.city || ''}`
-      : tenant.googleMapsUrl || `${brandTitle} ${tenant.city || ''}`;
+      : `${brandTitle} ${tenant.city || ''}`;
     return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
   };
 
   const getDirectMapUrl = () => {
-    if (tenant.googleMapsUrl && !tenant.googleMapsUrl.includes('output=embed')) {
+    if (tenant.googleMapsUrl && tenant.googleMapsUrl.startsWith('https://') && !tenant.googleMapsUrl.includes('output=embed')) {
       return tenant.googleMapsUrl;
     }
     const query = tenant.address
@@ -314,7 +314,7 @@ export default function TenantPublicPage() {
             <div className="tp-social-section__cards">
               {tenant.socialMedia?.instagram && (
                 <a
-                  href={`https://instagram.com/${tenant.socialMedia.instagram.replace(/^@/, '')}`}
+                  href={`https://instagram.com/${encodeURIComponent(tenant.socialMedia.instagram.replace(/^@/, '').trim())}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="tp-social-card tp-social-card--instagram"
@@ -324,7 +324,7 @@ export default function TenantPublicPage() {
                   </div>
                   <div className="tp-social-card__info">
                     <span className="tp-social-card__platform">Instagram</span>
-                    <span className="tp-social-card__handle">@{tenant.socialMedia.instagram.replace(/^@/, '')}</span>
+                    <span className="tp-social-card__handle">@{tenant.socialMedia.instagram.replace(/^@/, '').trim()}</span>
                   </div>
                   <ExternalLink size={16} className="tp-social-card__arrow" />
                 </a>
@@ -333,9 +333,9 @@ export default function TenantPublicPage() {
               {tenant.socialMedia?.facebook && (
                 <a
                   href={
-                    tenant.socialMedia.facebook.startsWith('http')
+                    tenant.socialMedia.facebook.startsWith('https://') || tenant.socialMedia.facebook.startsWith('http://')
                       ? tenant.socialMedia.facebook
-                      : `https://facebook.com/${tenant.socialMedia.facebook}`
+                      : `https://facebook.com/${encodeURIComponent(tenant.socialMedia.facebook.replace(/^\/+/, '').trim())}`
                   }
                   target="_blank"
                   rel="noopener noreferrer"

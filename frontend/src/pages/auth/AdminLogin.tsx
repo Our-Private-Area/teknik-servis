@@ -18,7 +18,7 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
 
-    const res = loginAsSuperAdmin(email, password);
+    const res = await loginAsSuperAdmin(email, password);
 
     if (!res.success) {
       toast.error(res.message || 'Giriş başarısız!');

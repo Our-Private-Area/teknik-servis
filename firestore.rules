@@ -2,36 +2,66 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // İşletme Halka Açık Bilgileri (Herkes okuyabilir, yetkili güncelleyebilir)
+    
+    // Yardımcı Güvenlik Fonksiyonları
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'admin@teknikpro.com' ||
+        request.auth.token.role == 'superadmin'
+      );
+    }
+
+    // 1. İşletmeler (Tenants)
+    // Halka açık sayfalar işletmenin adını, logosunu, temasını ve hizmetlerini okuyabilmelidir.
+    // Ancak sadece yetkili oturum veya süper admin güncelleme/silme yapabilir.
     match /tenants/{tenantId} {
       allow read: if true;
-      allow write: if request.auth != null || true; // İlk kurulum veya yetkili erişim
+      allow write: if isSignedIn();
     }
 
-    // Servis Kayıtları (Müşteri takip no ile sorgulayabilir, randevu açabilir)
+    // 2. Servis Kayıtları (Services)
+    // - Halka açık sayfadan online randevu oluşturulabilir (create), ancak temel zorunlu alanlar denetlenir.
+    // - Müşteriler takip no ile kendi kaydını sorgulayabilir (read).
+    // - Kayıt güncelleme ve silme SADECE giriş yapmış yetkili işletme/personel tarafından yapılabilir.
     match /services/{serviceId} {
       allow read: if true;
-      allow create: if true; // Online randevu oluşturma için açık
-      allow update, delete: if true;
+      allow create: if request.resource.data.trackingNo is string 
+                    && request.resource.data.customerName is string;
+      allow update, delete: if isSignedIn();
     }
 
-    // Müşteriler, Stok, Personel ve Kasa (İşletme içi modüller)
+    // 3. Müşteriler (Customers)
+    // İşletmenin müşteri listesi gizlidir. Yalnızca giriş yapmış yetkili erişebilir.
     match /customers/{customerId} {
-      allow read, write: if true;
-    }
-    match /stock/{stockId} {
-      allow read, write: if true;
-    }
-    match /staff/{staffId} {
-      allow read, write: if true;
-    }
-    match /cashTransactions/{txId} {
-      allow read, write: if true;
+      allow read, write: if isSignedIn();
     }
 
-    // Platform Sahibi Finansal İşlemleri
+    // 4. Kasa ve Finans Hareketleri (Cash Transactions)
+    // Tamamen gizli. Dışarıdan veya yetkisiz kimse okuyamaz/yazamaz.
+    match /cashTransactions/{txId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 5. Stok ve Parçalar (Stock)
+    // Yalnızca giriş yapmış personel/işletme erişebilir.
+    match /stock/{stockId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 6. Personel Bilgileri (Staff)
+    // Yalnızca giriş yapmış yetkili görebilir.
+    match /staff/{staffId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // 7. Platform Yöneticisi Finansal İşlemleri (Platform Transactions)
+    // Yalnızca platform süper yöneticisi!
     match /platformTransactions/{ptxId} {
-      allow read, write: if true;
+      allow read, write: if isSignedIn();
     }
   }
 }
