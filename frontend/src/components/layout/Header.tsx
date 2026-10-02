@@ -310,7 +310,7 @@ export default function Header({ title, subtitle, onToggleSidebar }: HeaderProps
           </Link>
         )}
 
-        {/* Tenant Badge (Bursa Bilişim) -> Ayarlara yönlendirir */}
+        {/* İşletme Rozeti (Hangi işletme giriş yaptıysa o yazar) -> Ayarlara yönlendirir */}
         <Link
           to="/panel/ayarlar"
           className="header__tenant-badge"
@@ -320,13 +320,13 @@ export default function Header({ title, subtitle, onToggleSidebar }: HeaderProps
           <span className="header__tenant-text">{currentTenant.brandName || currentTenant.name}</span>
         </Link>
 
-        {/* Web Siteye Git Butonu */}
+        {/* Web Siteye Git Butonu (Hangi işletme giriş yaptıysa onun web sitesini açar) */}
         <a
-          href={`/${currentTenant.slug || 'bursa-bilisim'}`}
+          href={`/${currentTenant.slug || ''}`}
           target="_blank"
           rel="noopener noreferrer"
           className="header__website-btn"
-          title="Halka Açık Müşteri Web Sitesine Git (Yeni Sekme)"
+          title={`${currentTenant.brandName || currentTenant.name} Web Sitesine Git (Yeni Sekme)`}
         >
           <Globe size={13} className="header__website-icon" />
           <span className="header__website-text">Web Siteye Git</span>
@@ -423,7 +423,7 @@ export default function Header({ title, subtitle, onToggleSidebar }: HeaderProps
             <span className="header__notification-dot" />
           </button>
 
-          {/* Profile (Bursa Bilişim) -> Ayarlara yönlendirir */}
+          {/* Profil Alanı (Giriş yapan işletme adı) -> Ayarlara yönlendirir */}
           <Link
             to="/panel/ayarlar"
             className="header__profile"
