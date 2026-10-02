@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -34,13 +34,21 @@ const TABS: { key: string; label: string; countFilter?: (s: ServiceRecord) => bo
 
 export default function ServiceList() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const services = useTenantServices();
   const { deleteService, updateServiceStatus } = useServiceStore();
 
   const [activeTab, setActiveTab] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedDeviceType, setSelectedDeviceType] = useState('all');
   const [selectedPriority, setSelectedPriority] = useState('all');
+
+  useEffect(() => {
+    const q = searchParams.get('search');
+    if (q !== null) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
 
   const filteredServices = useMemo(() => {
     return services.filter((srv) => {
