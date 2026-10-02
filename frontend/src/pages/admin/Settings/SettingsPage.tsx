@@ -14,10 +14,11 @@ import {
   Palette,
   Sparkles,
   Check,
+  Layers,
 } from 'lucide-react';
 import { useThemeStore } from '../../../store/themeStore';
 import { useTenantStore } from '../../../store/tenantStore';
-import { ADMIN_PRESET_COLORS, applyAdminTheme } from '../../../utils/themeUtils';
+import { ADMIN_PRESET_COLORS, ADMIN_BG_PRESETS, applyAdminTheme } from '../../../utils/themeUtils';
 import toast from 'react-hot-toast';
 
 export default function SettingsPage() {
@@ -35,12 +36,20 @@ export default function SettingsPage() {
   const [terms, setTerms] = useState(currentTenant.terms || '');
   const [isSaving, setIsSaving] = useState(false);
 
-  // Panel Tema Rengi Seçenekleri (Default, Web Sitesi veya Özel Renk)
+  // Panel Tema Vurgu Rengi Seçenekleri (Default, Web Sitesi veya Özel Renk)
   const [adminThemeMode, setAdminThemeMode] = useState<'default' | 'website_colors' | 'custom'>(
     currentTenant.theme?.adminThemeMode || 'default'
   );
   const [adminPrimaryColor, setAdminPrimaryColor] = useState(
     currentTenant.theme?.adminPrimaryColor || currentTenant.theme?.primaryColor || '#3b82f6'
+  );
+
+  // Panel Arka Plan Atmosferi (Lacivert, Saf Siyah, Grafit, Mor vb.)
+  const [adminBgPreset, setAdminBgPreset] = useState<
+    'navy' | 'black' | 'graphite' | 'purple' | 'emerald' | 'espresso' | 'crimson' | 'custom'
+  >(currentTenant.theme?.adminBgPreset || 'navy');
+  const [adminBgColor, setAdminBgColor] = useState(
+    currentTenant.theme?.adminBgColor || '#000000'
   );
 
   // Sync state if currentTenant changes (e.g. from Firestore)
@@ -58,9 +67,11 @@ export default function SettingsPage() {
     setAdminPrimaryColor(
       currentTenant.theme?.adminPrimaryColor || currentTenant.theme?.primaryColor || '#3b82f6'
     );
+    setAdminBgPreset(currentTenant.theme?.adminBgPreset || 'navy');
+    setAdminBgColor(currentTenant.theme?.adminBgColor || '#000000');
   }, [currentTenant]);
 
-  // Ayarlar sayfasında kullanıcı renk seçerken anlık canlı önizleme
+  // Ayarlar sayfasında kullanıcı renk veya arka plan seçerken anlık canlı önizleme
   useEffect(() => {
     applyAdminTheme(
       {
@@ -69,10 +80,12 @@ export default function SettingsPage() {
         secondaryColor: currentTenant.theme?.secondaryColor || '#06b6d4',
         adminThemeMode,
         adminPrimaryColor,
+        adminBgPreset,
+        adminBgColor,
       },
       theme === 'dark'
     );
-  }, [adminThemeMode, adminPrimaryColor, currentTenant.theme, theme]);
+  }, [adminThemeMode, adminPrimaryColor, adminBgPreset, adminBgColor, currentTenant.theme, theme]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,9 +107,11 @@ export default function SettingsPage() {
           secondaryColor: currentTenant.theme?.secondaryColor || '#06b6d4',
           adminThemeMode,
           adminPrimaryColor,
+          adminBgPreset,
+          adminBgColor,
         },
       });
-      toast.success('İşletme ayarları ve panel tema rengi güncellendi!');
+      toast.success('İşletme ayarları, vurgu ve arka plan renk teması güncellendi!');
     } catch {
       toast.error('Ayarlar kaydedilirken hata oluştu.');
     } finally {
@@ -393,17 +408,187 @@ export default function SettingsPage() {
               </div>
             )}
 
+            {/* Background Atmosphere Section (Replacing default Navy) */}
+            <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontWeight: 600, fontSize: '14px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Layers size={15} color="var(--accent-primary, #3b82f6)" />
+                  <span>Yönetim Paneli Arka Plan Atmosferi (Lacivert Değişimi)</span>
+                </div>
+                <small style={{ color: 'var(--text-muted, #94a3b8)' }}>
+                  Panelin ana zemin, sol menü ve kart renk tonunu belirleyin. Mevcut lacivert tonları yerine saf siyah (OLED), platin füme grafit, obsidyen mor, zümrüt, espresso, bordo veya kendi belirleyeceğiniz özel bir rengi seçebilirsiniz.
+                </small>
+              </div>
+
+              {/* Grid of 7 Presets + 1 Custom Option */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px', marginBottom: 14 }}>
+                {ADMIN_BG_PRESETS.map((preset) => {
+                  const isSelected = adminBgPreset === preset.id;
+                  return (
+                    <div
+                      key={preset.id}
+                      onClick={() => setAdminBgPreset(preset.id as any)}
+                      style={{
+                        padding: '12px',
+                        borderRadius: '10px',
+                        border: isSelected ? '2px solid var(--accent-primary, #3b82f6)' : '1px solid rgba(255, 255, 255, 0.1)',
+                        background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.25)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                      }}
+                    >
+                      {/* Swatch preview bar */}
+                      <div style={{ display: 'flex', height: 24, borderRadius: 6, overflow: 'hidden', border: `1px solid ${preset.borderPrimary}` }}>
+                        <div style={{ flex: 1, background: preset.primary }} title="Zemin Rengi" />
+                        <div style={{ flex: 1, background: preset.secondary }} title="Sol Menü & Üst Bar" />
+                        <div style={{ flex: 1.2, background: preset.card }} title="Kart & Tablo Zemin" />
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '12px', fontWeight: isSelected ? 700 : 600, color: 'white' }}>
+                          {preset.name}
+                        </span>
+                        {isSelected && <Check size={14} color="var(--accent-primary, #3b82f6)" />}
+                      </div>
+
+                      <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.3 }}>
+                        {preset.desc}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                {/* Option 8: Custom Dark Background */}
+                <div
+                  onClick={() => setAdminBgPreset('custom')}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '10px',
+                    border: adminBgPreset === 'custom' ? '2px solid var(--accent-primary, #3b82f6)' : '1px solid rgba(255, 255, 255, 0.1)',
+                    background: adminBgPreset === 'custom' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.25)',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: 'flex', height: 24, borderRadius: 6, overflow: 'hidden', border: '1px solid rgba(255, 255, 255, 0.15)' }}>
+                    <div style={{ flex: 1, background: adminBgColor }} />
+                    <div style={{ flex: 1, background: adminBgColor, filter: 'brightness(1.3)' }} />
+                    <div style={{ flex: 1.2, background: adminBgColor, filter: 'brightness(1.6)' }} />
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '12px', fontWeight: adminBgPreset === 'custom' ? 700 : 600, color: 'white' }}>
+                      Özel Koyu Renk
+                    </span>
+                    {adminBgPreset === 'custom' && <Check size={14} color="var(--accent-primary, #3b82f6)" />}
+                  </div>
+
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.3 }}>
+                    Kendi seçeceğiniz HEX zemin kodu
+                  </span>
+                </div>
+              </div>
+
+              {/* Custom Dark Background Color Picker */}
+              {adminBgPreset === 'custom' && (
+                <div style={{ background: 'rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 8, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-secondary, #94a3b8)' }}>Zemin Rengi:</label>
+                    <input
+                      type="color"
+                      value={adminBgColor}
+                      onChange={(e) => setAdminBgColor(e.target.value)}
+                      style={{
+                        width: 36,
+                        height: 36,
+                        padding: 2,
+                        borderRadius: 6,
+                        background: 'transparent',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        cursor: 'pointer',
+                      }}
+                    />
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted, #94a3b8)' }}>HEX:</span>
+                    <input
+                      type="text"
+                      value={adminBgColor}
+                      onChange={(e) => setAdminBgColor(e.target.value)}
+                      placeholder="#0a0a0c"
+                      style={{
+                        width: 100,
+                        padding: '6px 10px',
+                        borderRadius: 6,
+                        background: 'rgba(0, 0, 0, 0.4)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        color: 'white',
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                        fontWeight: 600,
+                      }}
+                    />
+                  </div>
+                  <span style={{ fontSize: 11, color: 'var(--text-muted, #94a3b8)' }}>
+                    💡 İpucu: Koyu bir renk seçtiğinizde kartlar, menü ve çerçeve katmanları sistem tarafından otomatik tonlanır.
+                  </span>
+                </div>
+              )}
+            </div>
+
             {/* Live Interactive Preview Pill */}
-            <div style={{ marginTop: 14, padding: '12px 16px', borderRadius: 8, background: 'var(--accent-primary-light, rgba(59, 130, 246, 0.12))', border: '1px solid var(--accent-primary, #3b82f6)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+            <div
+              style={{
+                marginTop: 16,
+                padding: '12px 16px',
+                borderRadius: 10,
+                background: 'var(--accent-primary-light, rgba(59, 130, 246, 0.12))',
+                border: '1px solid var(--accent-primary, #3b82f6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 12,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <Sparkles size={18} color="var(--accent-primary, #3b82f6)" />
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary, #ffffff)' }}>
+                    Canlı Önizleme Aktif
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-secondary, #94a3b8)' }}>
+                    Arka Plan:{' '}
+                    <strong>
+                      {adminBgPreset === 'custom'
+                        ? `Özel (${adminBgColor})`
+                        : ADMIN_BG_PRESETS.find((p) => p.id === adminBgPreset)?.name || 'Gece Mavisi (Lacivert)'}
+                    </strong>
+                    {' '}• Vurgu:{' '}
+                    <strong>
+                      {adminThemeMode === 'default'
+                        ? 'Standart Mavi'
+                        : adminThemeMode === 'website_colors'
+                        ? 'Web Sitesi Marka Rengi'
+                        : `Özel (${adminPrimaryColor})`}
+                    </strong>
+                  </div>
+                </div>
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <Sparkles size={16} color="var(--accent-primary, #3b82f6)" />
-                <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary, #ffffff)' }}>
-                  Canlı Önizleme: Sol menü, butonlar ve aktif başlıklar şu an seçtiğiniz renge büründü!
+                <span style={{ fontSize: '11px', fontWeight: 700, padding: '5px 12px', borderRadius: 6, background: 'var(--accent-primary, #3b82f6)', color: 'white' }}>
+                  Kaydet Butonu
+                </span>
+                <span style={{ fontSize: '11px', fontWeight: 600, padding: '5px 10px', borderRadius: 6, background: 'var(--bg-card, #141921)', border: '1px solid var(--border-primary, rgba(255,255,255,0.1))', color: 'white' }}>
+                  Kart Zemin
                 </span>
               </div>
-              <span style={{ fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: 6, background: 'var(--accent-primary, #3b82f6)', color: 'white' }}>
-                Örnek Buton
-              </span>
             </div>
           </div>
         </div>

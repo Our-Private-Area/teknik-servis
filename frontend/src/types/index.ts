@@ -69,6 +69,8 @@ export interface TenantTheme {
   darkMode?: boolean;
   adminThemeMode?: 'default' | 'website_colors' | 'custom';
   adminPrimaryColor?: string;
+  adminBgPreset?: 'navy' | 'black' | 'graphite' | 'purple' | 'emerald' | 'espresso' | 'crimson' | 'custom';
+  adminBgColor?: string;
 }
 
 export interface Tenant {
