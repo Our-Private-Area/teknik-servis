@@ -60,11 +60,6 @@ export default function LandingPage() {
         </div>
 
         <div className="landing-hero__content">
-          <div className="landing-hero__badge">
-            <Zap size={14} />
-            <span>SaaS Teknik Servis Platformu</span>
-          </div>
-
           <h1 className="landing-hero__title">
             Teknik Servis Yönetiminde{' '}
             <span className="landing-hero__gradient">Yeni Nesil.</span>
@@ -372,7 +367,7 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="landing-footer">
-        © 2026 <strong>TeknikPro</strong> · SaaS Teknik Servis Platformu · Tüm hakları saklıdır.
+        © 2026 <strong>TeknikPro</strong> · Tüm hakları saklıdır.
         {' · '}
         <Link to="/giris">İşletme Girişi</Link>
         {' · '}

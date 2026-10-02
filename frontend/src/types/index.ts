@@ -116,6 +116,21 @@ export interface Tenant {
   // Hizmet Bilgileri
   services?: string[];
   deviceBrands?: string[];
+
+  // Medya / Galeri Bölümü
+  mediaEnabled?: boolean;
+  mediaTitle?: string;
+  mediaDescription?: string;
+  mediaItems?: TenantMediaItem[];
+  mediaCategories?: string[];
+}
+
+export interface TenantMediaItem {
+  id: string;
+  url: string;
+  title?: string;
+  category?: string; // 'Dükkan', 'Ürünler', 'Onarım', 'Atölye', 'Genel'
+  createdAt?: string;
 }
 
 export interface PlatformTransaction {

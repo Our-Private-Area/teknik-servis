@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Globe,
   Palette,
@@ -17,10 +17,59 @@ import {
   Wrench,
   Smartphone,
   Eye,
+  Upload,
+  Image as ImageIcon,
+  Trash2,
+  Plus,
+  Camera,
+  X,
 } from 'lucide-react';
 import { useTenantStore } from '../../../store/tenantStore';
+import { TenantMediaItem } from '../../../types';
+import { compressImageFile } from '../../../utils/imageUtils';
 import toast from 'react-hot-toast';
 import './WebsiteSettings.css';
+
+export const DEFAULT_PRESET_CATEGORIES = [
+  'Dükkan & Atölye',
+  'Onarım',
+  'Ürünler',
+  'Ekibimiz',
+  'Genel',
+];
+
+const PRESET_TECH_PHOTOS: Array<{ url: string; title: string; category: string }> = [
+  {
+    url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=900&q=80',
+    title: 'Modern Teknik Servis Atölyemiz',
+    category: 'Dükkan & Atölye',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&w=900&q=80',
+    title: 'Mikroskop Altında BGA & Anakart Tamiri',
+    category: 'Onarım',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1588508065123-287b28e013da?auto=format&fit=crop&w=900&q=80',
+    title: 'Ekran, Cam ve Batarya Değişim İstasyonu',
+    category: 'Onarım',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&w=900&q=80',
+    title: 'Deneyimli Teknisyen Ekibimiz',
+    category: 'Dükkan & Atölye',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=900&q=80',
+    title: 'Orijinal Yedek Parça ve Aksesuar Stoğumuz',
+    category: 'Ürünler',
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1517430816045-df4b7de81a30?auto=format&fit=crop&w=900&q=80',
+    title: 'Müşteri Danışma ve Teslimat Masası',
+    category: 'Dükkan & Atölye',
+  },
+];
 
 const THEME_PRESETS = [
   { name: 'Okyanus Mavisi', primary: '#0071e3', secondary: '#06b6d4', accent: '#f59e0b' },
@@ -34,7 +83,7 @@ const THEME_PRESETS = [
 export default function WebsiteSettings() {
   const { currentTenant, updateCurrentTenant } = useTenantStore();
 
-  const [activeTab, setActiveTab] = useState<'appearance' | 'content' | 'services' | 'contact'>('appearance');
+  const [activeTab, setActiveTab] = useState<'appearance' | 'content' | 'services' | 'media' | 'contact'>('appearance');
 
   // Appearance
   const [primaryColor, setPrimaryColor] = useState(currentTenant.theme?.primaryColor || '#0071e3');
@@ -42,6 +91,35 @@ export default function WebsiteSettings() {
   const [accentColor, setAccentColor] = useState(currentTenant.theme?.accentColor || '#f59e0b');
   const [logoUrl, setLogoUrl] = useState(currentTenant.logoUrl || '');
   const [coverImageUrl, setCoverImageUrl] = useState(currentTenant.coverImageUrl || '');
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+
+  // File input refs
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
+  const mediaFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Media / Gallery
+  const [mediaEnabled, setMediaEnabled] = useState(Boolean(currentTenant.mediaEnabled));
+  const [mediaTitle, setMediaTitle] = useState(currentTenant.mediaTitle || 'Dükkanımız & Ürünlerimiz');
+  const [mediaDescription, setMediaDescription] = useState(
+    currentTenant.mediaDescription ||
+      'Modern laboratuvar ekipmanlarımız, temiz çalışma ortamımız ve orijinal yedek parça stoğumuz.'
+  );
+  const [mediaItems, setMediaItems] = useState<TenantMediaItem[]>(currentTenant.mediaItems || []);
+  const [newPhotoUrl, setNewPhotoUrl] = useState('');
+  const [newPhotoTitle, setNewPhotoTitle] = useState('');
+  const [newPhotoCategory, setNewPhotoCategory] = useState('Dükkan & Atölye');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
+  // Categories list (presets + custom saved on tenant + items)
+  const [categoriesList, setCategoriesList] = useState<string[]>(() => {
+    const fromTenant = currentTenant.mediaCategories || [];
+    const fromItems = (currentTenant.mediaItems || []).map((m) => m.category).filter(Boolean) as string[];
+    return Array.from(new Set([...DEFAULT_PRESET_CATEGORIES, ...fromTenant, ...fromItems]));
+  });
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [customCategoryInput, setCustomCategoryInput] = useState('');
 
   // Content
   const [brandName, setBrandName] = useState(currentTenant.brandName || currentTenant.name || '');
@@ -95,6 +173,13 @@ export default function WebsiteSettings() {
     setInstagram(currentTenant.socialMedia?.instagram || '');
     setFacebook(currentTenant.socialMedia?.facebook || '');
     setWhatsapp(currentTenant.socialMedia?.whatsapp || '');
+    setMediaEnabled(Boolean(currentTenant.mediaEnabled));
+    setMediaTitle(currentTenant.mediaTitle || 'Dükkanımız & Ürünlerimiz');
+    setMediaDescription(currentTenant.mediaDescription || '');
+    setMediaItems(currentTenant.mediaItems || []);
+    const fromTenant = currentTenant.mediaCategories || [];
+    const fromItems = (currentTenant.mediaItems || []).map((m) => m.category).filter(Boolean) as string[];
+    setCategoriesList(Array.from(new Set([...DEFAULT_PRESET_CATEGORIES, ...fromTenant, ...fromItems])));
   }, [currentTenant]);
 
   const publicUrl = `${window.location.origin}/${currentTenant.slug}`;
@@ -104,6 +189,159 @@ export default function WebsiteSettings() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     toast.success('Web sitesi adresiniz kopyalandı!');
+  };
+
+  // Logo file upload handler
+  const handleLogoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Lütfen geçerli bir görsel dosyası seçin (PNG, JPG, SVG, WebP).');
+      return;
+    }
+    setIsUploadingLogo(true);
+    try {
+      const dataUrl = await compressImageFile(file, { maxWidth: 512, maxHeight: 512, quality: 0.85 });
+      setLogoUrl(dataUrl);
+      toast.success('Logo bilgisayarınızdan başarıyla yüklendi!');
+    } catch {
+      toast.error('Logo yüklenirken bir hata oluştu.');
+    } finally {
+      setIsUploadingLogo(false);
+      if (logoFileInputRef.current) logoFileInputRef.current.value = '';
+    }
+  };
+
+  // Cover image file upload handler
+  const handleCoverFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Lütfen geçerli bir görsel dosyası seçin.');
+      return;
+    }
+    setIsUploadingCover(true);
+    try {
+      const dataUrl = await compressImageFile(file, { maxWidth: 1200, maxHeight: 600, quality: 0.82 });
+      setCoverImageUrl(dataUrl);
+      toast.success('Kapak görseli başarıyla yüklendi!');
+    } catch {
+      toast.error('Kapak görseli yüklenirken hata oluştu.');
+    } finally {
+      setIsUploadingCover(false);
+      if (coverFileInputRef.current) coverFileInputRef.current.value = '';
+    }
+  };
+
+  // Media gallery file upload handler (supports multi-file)
+  const handleMediaFilesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploadingPhoto(true);
+
+    try {
+      const newItems: TenantMediaItem[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.startsWith('image/')) continue;
+        const compressed = await compressImageFile(file, { maxWidth: 900, maxHeight: 900, quality: 0.82 });
+        const title = newPhotoTitle.trim() || file.name.replace(/\.[^/.]+$/, '');
+        newItems.push({
+          id: `media-${Date.now()}-${i}`,
+          url: compressed,
+          title,
+          category: newPhotoCategory,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      if (newItems.length > 0) {
+        setMediaItems((prev) => [...prev, ...newItems]);
+        setNewPhotoTitle('');
+        toast.success(`${newItems.length} adet fotoğraf başarıyla eklendi!`);
+      } else {
+        toast.error('Lütfen geçerli görsel dosyaları seçin.');
+      }
+    } catch {
+      toast.error('Fotoğraflar işlenirken hata oluştu.');
+    } finally {
+      setIsUploadingPhoto(false);
+      if (mediaFileInputRef.current) mediaFileInputRef.current.value = '';
+    }
+  };
+
+  const handleAddPhotoByUrl = () => {
+    if (!newPhotoUrl.trim()) {
+      toast.error('Lütfen bir görsel URL adresi girin.');
+      return;
+    }
+    const item: TenantMediaItem = {
+      id: `media-${Date.now()}`,
+      url: newPhotoUrl.trim(),
+      title: newPhotoTitle.trim() || undefined,
+      category: newPhotoCategory,
+      createdAt: new Date().toISOString(),
+    };
+    setMediaItems((prev) => [...prev, item]);
+    setNewPhotoUrl('');
+    setNewPhotoTitle('');
+    toast.success('Fotoğraf galeriye eklendi!');
+  };
+
+  const handleRemovePhoto = (id: string) => {
+    setMediaItems((prev) => prev.filter((m) => m.id !== id));
+    toast.success('Fotoğraf galeriden kaldırıldı.');
+  };
+
+  const handleAddCustomCategory = () => {
+    const trimmed = customCategoryInput.trim();
+    if (!trimmed) {
+      toast.error('Lütfen bir kategori adı yazın.');
+      return;
+    }
+    const found = categoriesList.find((c) => c.toLowerCase() === trimmed.toLowerCase());
+    if (found) {
+      toast.error(`"${found}" kategorisi zaten mevcut.`);
+      setNewPhotoCategory(found);
+      setIsAddingCategory(false);
+      setCustomCategoryInput('');
+      return;
+    }
+
+    const updated = [...categoriesList, trimmed];
+    setCategoriesList(updated);
+    setNewPhotoCategory(trimmed);
+    setCustomCategoryInput('');
+    setIsAddingCategory(false);
+    toast.success(`"${trimmed}" kategorisi eklendi ve seçildi!`);
+  };
+
+  const handleRemoveCustomCategory = (catToRemove: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const inUse = mediaItems.some((m) => m.category === catToRemove);
+    if (inUse) {
+      toast.error(`"${catToRemove}" kategorisi fotoğraflarda kullanıldığı için silinemez.`);
+      return;
+    }
+    const updated = categoriesList.filter((c) => c !== catToRemove);
+    setCategoriesList(updated);
+    if (newPhotoCategory === catToRemove) {
+      setNewPhotoCategory(updated[0] || 'Genel');
+    }
+    toast.success(`"${catToRemove}" kategorisi kaldırıldı.`);
+  };
+
+  const handleLoadPresetPhotos = () => {
+    const items: TenantMediaItem[] = PRESET_TECH_PHOTOS.map((p, idx) => ({
+      id: `media-preset-${Date.now()}-${idx}`,
+      url: p.url,
+      title: p.title,
+      category: p.category,
+      createdAt: new Date().toISOString(),
+    }));
+    setMediaItems(items);
+    setMediaEnabled(true);
+    toast.success('Örnek atölye ve ürün fotoğrafları yüklendi!');
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -148,6 +386,11 @@ export default function WebsiteSettings() {
           facebook: facebook.trim() || undefined,
           whatsapp: whatsapp.trim() || phone.replace(/\D/g, '') || undefined,
         },
+        mediaEnabled,
+        mediaTitle: mediaTitle.trim() || undefined,
+        mediaDescription: mediaDescription.trim() || undefined,
+        mediaItems,
+        mediaCategories: categoriesList,
       });
 
       toast.success('Halka açık web sayfanız ve tema renkleriniz başarıyla güncellendi!');
@@ -224,6 +467,15 @@ export default function WebsiteSettings() {
         >
           <Wrench size={16} />
           <span>Hizmetler & Markalar</span>
+        </button>
+        <button
+          type="button"
+          className={`ws-tab ${activeTab === 'media' ? 'ws-tab--active' : ''}`}
+          onClick={() => setActiveTab('media')}
+        >
+          <ImageIcon size={16} />
+          <span>Dükkan & Ürün Medyası</span>
+          {mediaEnabled && <span className="ws-tab-badge">Aktif</span>}
         </button>
         <button
           type="button"
@@ -339,26 +591,128 @@ export default function WebsiteSettings() {
               </div>
             </div>
 
-            {/* Logo & Cover URLs */}
-            <div className="ws-form-grid">
-              <div className="ws-field">
-                <label>İşletme Logo URL (PNG/SVG önerilir)</label>
-                <input
-                  type="url"
-                  placeholder="https://.../logo.png"
-                  value={logoUrl}
-                  onChange={(e) => setLogoUrl(e.target.value)}
-                />
+            {/* Logo & Kapak Görselleri (Bilgisayardan Yükle veya URL) */}
+            <div className="ws-upload-cards-grid">
+              {/* Logo Kartı */}
+              <div className="ws-upload-card">
+                <div className="ws-upload-card__header">
+                  <label className="ws-upload-card__label">
+                    İşletme Logosu (PNG, SVG, JPG)
+                  </label>
+                  {logoUrl && (
+                    <button
+                      type="button"
+                      className="ws-upload-card__remove"
+                      onClick={() => setLogoUrl('')}
+                      title="Logoyu Kaldır"
+                    >
+                      <Trash2 size={13} /> Kaldır
+                    </button>
+                  )}
+                </div>
+
+                <div className="ws-upload-card__body">
+                  <div className="ws-upload-card__preview">
+                    {logoUrl ? (
+                      <img src={logoUrl} alt="Logo Önizleme" />
+                    ) : (
+                      <div className="ws-upload-card__placeholder">
+                        <Camera size={24} />
+                        <span>Logo Yok</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="ws-upload-card__controls">
+                    <input
+                      type="file"
+                      ref={logoFileInputRef}
+                      style={{ display: 'none' }}
+                      accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                      onChange={handleLogoFileUpload}
+                    />
+                    <button
+                      type="button"
+                      className="ws-btn-upload"
+                      onClick={() => logoFileInputRef.current?.click()}
+                      disabled={isUploadingLogo}
+                    >
+                      <Upload size={14} />
+                      <span>{isUploadingLogo ? 'İşleniyor...' : 'Bilgisayardan Logo Seç'}</span>
+                    </button>
+
+                    <div className="ws-upload-card__url-input">
+                      <span>veya URL:</span>
+                      <input
+                        type="url"
+                        placeholder="https://.../logo.png"
+                        value={logoUrl}
+                        onChange={(e) => setLogoUrl(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="ws-field">
-                <label>Kapak / Arka Plan Görseli URL (Opsiyonel)</label>
-                <input
-                  type="url"
-                  placeholder="https://.../cover.jpg"
-                  value={coverImageUrl}
-                  onChange={(e) => setCoverImageUrl(e.target.value)}
-                />
+              {/* Kapak Görseli Kartı */}
+              <div className="ws-upload-card">
+                <div className="ws-upload-card__header">
+                  <label className="ws-upload-card__label">
+                    Kapak / Arka Plan Görseli (Opsiyonel)
+                  </label>
+                  {coverImageUrl && (
+                    <button
+                      type="button"
+                      className="ws-upload-card__remove"
+                      onClick={() => setCoverImageUrl('')}
+                      title="Kapağı Kaldır"
+                    >
+                      <Trash2 size={13} /> Kaldır
+                    </button>
+                  )}
+                </div>
+
+                <div className="ws-upload-card__body">
+                  <div className="ws-upload-card__preview ws-upload-card__preview--banner">
+                    {coverImageUrl ? (
+                      <img src={coverImageUrl} alt="Kapak Önizleme" />
+                    ) : (
+                      <div className="ws-upload-card__placeholder">
+                        <ImageIcon size={24} />
+                        <span>Kapak Yok</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="ws-upload-card__controls">
+                    <input
+                      type="file"
+                      ref={coverFileInputRef}
+                      style={{ display: 'none' }}
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={handleCoverFileUpload}
+                    />
+                    <button
+                      type="button"
+                      className="ws-btn-upload"
+                      onClick={() => coverFileInputRef.current?.click()}
+                      disabled={isUploadingCover}
+                    >
+                      <Upload size={14} />
+                      <span>{isUploadingCover ? 'İşleniyor...' : 'Bilgisayardan Kapak Seç'}</span>
+                    </button>
+
+                    <div className="ws-upload-card__url-input">
+                      <span>veya URL:</span>
+                      <input
+                        type="url"
+                        placeholder="https://.../cover.jpg"
+                        value={coverImageUrl}
+                        onChange={(e) => setCoverImageUrl(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -536,7 +890,287 @@ export default function WebsiteSettings() {
           </div>
         )}
 
-        {/* Tab 4: Contact & Social */}
+        {/* Tab 4: Media & Gallery */}
+        {activeTab === 'media' && (
+          <div className="ws-card">
+            <h2 className="ws-card__title">
+              <ImageIcon size={18} color="#38bdf8" />
+              <span>Dükkan, Atölye & Ürün Medyası</span>
+            </h2>
+
+            {/* Toggle Status Card */}
+            <div className="ws-switch-card">
+              <div className="ws-switch-card__info">
+                <div className="ws-switch-card__title">
+                  <span>Medya Galerisi Bölümünü Web Sayfanda Göster</span>
+                  <span className={`ws-badge ${mediaEnabled ? 'ws-badge--success' : 'ws-badge--muted'}`}>
+                    {mediaEnabled ? 'Aktif (Yayında)' : 'Pasif (Gizli)'}
+                  </span>
+                </div>
+                <p className="ws-switch-card__desc">
+                  Aktif edildiğinde, randevu ve servis web sitenizde dükkanınızdan, atölyenizden ve ürünlerinizden fotoğraflar ziyaretçilere sergilenir.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className={`ws-toggle-switch ${mediaEnabled ? 'ws-toggle-switch--on' : ''}`}
+                onClick={() => setMediaEnabled(!mediaEnabled)}
+                aria-label="Medya Galeri Durumu"
+              >
+                <span className="ws-toggle-switch__thumb" />
+              </button>
+            </div>
+
+            {/* Galeri Başlık & Açıklama */}
+            <div className="ws-form-grid">
+              <div className="ws-field">
+                <label>Galeri Başlığı</label>
+                <input
+                  type="text"
+                  placeholder="Örn: Atölyemiz & Dükkanımızdan Kareler"
+                  value={mediaTitle}
+                  onChange={(e) => setMediaTitle(e.target.value)}
+                />
+              </div>
+
+              <div className="ws-field">
+                <label>Galeri Alt Açıklaması</label>
+                <input
+                  type="text"
+                  placeholder="Örn: Modern laboratuvarımız ve orijinal yedek parçalarımız."
+                  value={mediaDescription}
+                  onChange={(e) => setMediaDescription(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Fotoğraf Ekleme Bölümü */}
+            <div className="ws-media-add-box">
+              <div className="ws-media-add-box__header">
+                <div>
+                  <h3 className="ws-media-add-box__title">Yeni Fotoğraf Ekle</h3>
+                  <p className="ws-media-add-box__subtitle">
+                    Bilgisayarınızdan dükkan içi, onarım masası veya ürün fotoğraflarını seçip ekleyin.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="ws-btn-secondary"
+                  onClick={handleLoadPresetPhotos}
+                  title="Hazır örnek atölye fotoğraflarını yükler"
+                >
+                  <Sparkles size={14} color="#f59e0b" />
+                  <span>Örnek Fotoğrafları Yükle</span>
+                </button>
+              </div>
+
+              <div className="ws-media-add-form">
+                <div className="ws-form-grid">
+                  <div className="ws-field">
+                    <label>Fotoğraf Başlığı / Not (Opsiyonel)</label>
+                    <input
+                      type="text"
+                      placeholder="Örn: Anakart Onarım Masamız"
+                      value={newPhotoTitle}
+                      onChange={(e) => setNewPhotoTitle(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="ws-field">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <label style={{ margin: 0 }}>Kategori Seçin veya Yeni Ekleyin</label>
+                      {!isAddingCategory && (
+                        <button
+                          type="button"
+                          className="ws-btn-add-cat"
+                          onClick={() => setIsAddingCategory(true)}
+                        >
+                          <Plus size={13} />
+                          <span>Yeni Kategori Ekle</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Inline yeni kategori input alanı */}
+                    {isAddingCategory && (
+                      <div className="ws-cat-add-inline">
+                        <input
+                          type="text"
+                          placeholder="Yeni kategori adı (Örn: Aksesuarlar, Yedek Parça...)"
+                          value={customCategoryInput}
+                          onChange={(e) => setCustomCategoryInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleAddCustomCategory();
+                            } else if (e.key === 'Escape') {
+                              setIsAddingCategory(false);
+                              setCustomCategoryInput('');
+                            }
+                          }}
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          className="ws-btn-cat-save"
+                          onClick={handleAddCustomCategory}
+                        >
+                          <Check size={14} /> Ekle
+                        </button>
+                        <button
+                          type="button"
+                          className="ws-btn-cat-cancel"
+                          onClick={() => {
+                            setIsAddingCategory(false);
+                            setCustomCategoryInput('');
+                          }}
+                          title="İptal"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="ws-category-chips">
+                      {categoriesList.map((cat) => {
+                        const isSelected = newPhotoCategory === cat;
+                        const isPreset = DEFAULT_PRESET_CATEGORIES.includes(cat);
+                        return (
+                          <button
+                            type="button"
+                            key={cat}
+                            className={`ws-category-chip ${isSelected ? 'ws-category-chip--active' : ''}`}
+                            onClick={() => setNewPhotoCategory(cat)}
+                          >
+                            <span>{cat}</span>
+                            {!isPreset && (
+                              <span
+                                className="ws-category-chip__remove"
+                                onClick={(e) => handleRemoveCustomCategory(cat, e)}
+                                title="Özel kategoriyi sil"
+                              >
+                                ×
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="ws-media-upload-actions">
+                  <input
+                    type="file"
+                    ref={mediaFileInputRef}
+                    style={{ display: 'none' }}
+                    accept="image/*"
+                    multiple
+                    onChange={handleMediaFilesUpload}
+                  />
+
+                  <button
+                    type="button"
+                    className="ws-btn-primary ws-btn-primary--upload"
+                    onClick={() => mediaFileInputRef.current?.click()}
+                    disabled={isUploadingPhoto}
+                  >
+                    <Upload size={16} />
+                    <span>{isUploadingPhoto ? 'Yükleniyor & Sıkıştırılıyor...' : 'Bilgisayardan Fotoğraf Seç (Çoklu Seçilebilir)'}</span>
+                  </button>
+
+                  <div className="ws-media-url-row">
+                    <input
+                      type="url"
+                      placeholder="veya direkt görsel URL yapıştırın (https://...)"
+                      value={newPhotoUrl}
+                      onChange={(e) => setNewPhotoUrl(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="ws-btn-secondary"
+                      onClick={handleAddPhotoByUrl}
+                    >
+                      <Plus size={15} /> URL ile Ekle
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mevcut Yüklenmiş Fotoğraflar */}
+            <div className="ws-media-list-section">
+              <div className="ws-media-list-header">
+                <h3 style={{ fontSize: 14, fontWeight: 700, margin: 0, color: 'var(--text-primary, white)' }}>
+                  Yayınlanan Fotoğraflar ({mediaItems.length})
+                </h3>
+                {mediaItems.length > 0 && (
+                  <button
+                    type="button"
+                    className="ws-btn-danger-text"
+                    onClick={() => {
+                      if (window.confirm('Tüm galeri fotoğraflarını silmek istediğinize emin misiniz?')) {
+                        setMediaItems([]);
+                      }
+                    }}
+                  >
+                    Tümünü Temizle
+                  </button>
+                )}
+              </div>
+
+              {mediaItems.length === 0 ? (
+                <div className="ws-media-empty">
+                  <div className="ws-media-empty__icon">
+                    <ImageIcon size={36} />
+                  </div>
+                  <h4>Henüz fotoğraf eklenmedi</h4>
+                  <p>
+                    Dükkanınızın vitrinini, onarım ortamınızı veya sattığınız aksesuarları müşterilerinizle paylaşmak için yukarıdan fotoğraf ekleyin.
+                  </p>
+                  <button
+                    type="button"
+                    className="ws-btn-secondary"
+                    onClick={handleLoadPresetPhotos}
+                    style={{ marginTop: 8 }}
+                  >
+                    <Sparkles size={14} color="#f59e0b" />
+                    <span>Hızlıca Örnek Fotoğraflar Ekle</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="ws-media-grid">
+                  {mediaItems.map((item, idx) => (
+                    <div key={item.id || idx} className="ws-media-card">
+                      <div className="ws-media-card__img-wrap">
+                        <img src={item.url} alt={item.title || 'Fotoğraf'} />
+                        <button
+                          type="button"
+                          className="ws-media-card__delete"
+                          onClick={() => handleRemovePhoto(item.id)}
+                          title="Fotoğrafı Sil"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                      <div className="ws-media-card__details">
+                        {item.category && (
+                          <span className="ws-media-card__category">{item.category}</span>
+                        )}
+                        <span className="ws-media-card__title">
+                          {item.title || `Fotoğraf #${idx + 1}`}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: Contact & Social */}
         {activeTab === 'contact' && (
           <div className="ws-card">
             <h2 className="ws-card__title">

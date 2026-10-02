@@ -30,9 +30,11 @@ import {
   Info,
   Image as ImageIcon,
   MessageCircle,
+  Upload,
 } from 'lucide-react';
 import { useTenantStore, getTenantDefaultEmail, PLATFORM_DOMAIN } from '../../store/tenantStore';
 import { usePlatformStore } from '../../store/platformStore';
+import { compressImageFile } from '../../utils/imageUtils';
 import { useAuthStore } from '../../store/authStore';
 import { Tenant } from '../../types';
 import toast from 'react-hot-toast';
@@ -1037,24 +1039,84 @@ export default function SuperAdminDashboard() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>Logo URL</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>Logo URL</label>
+                      <label
+                        style={{
+                          fontSize: 11,
+                          color: '#38bdf8',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 3,
+                        }}
+                      >
+                        <Upload size={12} /> Bilgisayardan Seç
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const dataUrl = await compressImageFile(file, { maxWidth: 512, maxHeight: 512, quality: 0.85 });
+                                setLogoUrl(dataUrl);
+                              } catch {
+                                // ignore
+                              }
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
                     <input
                       type="url"
-                      placeholder="https://.../logo.png"
+                      placeholder="https://.../logo.png veya yükleyin"
                       value={logoUrl}
                       onChange={(e) => setLogoUrl(e.target.value)}
-                      style={{ padding: '10px 12px', borderRadius: 8, background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                      style={{ padding: '10px 12px', borderRadius: 8, background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: 12 }}
                     />
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                    <label style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>Kapak Görseli URL</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8' }}>Kapak Görseli URL</label>
+                      <label
+                        style={{
+                          fontSize: 11,
+                          color: '#38bdf8',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 3,
+                        }}
+                      >
+                        <Upload size={12} /> Bilgisayardan Seç
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const dataUrl = await compressImageFile(file, { maxWidth: 1200, maxHeight: 600, quality: 0.82 });
+                                setCoverImageUrl(dataUrl);
+                              } catch {
+                                // ignore
+                              }
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
                     <input
                       type="url"
-                      placeholder="https://.../cover.jpg"
+                      placeholder="https://.../cover.jpg veya yükleyin"
                       value={coverImageUrl}
                       onChange={(e) => setCoverImageUrl(e.target.value)}
-                      style={{ padding: '10px 12px', borderRadius: 8, background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                      style={{ padding: '10px 12px', borderRadius: 8, background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', color: 'white', fontSize: 12 }}
                     />
                   </div>
                 </div>

@@ -17,6 +17,10 @@ import {
   Smartphone,
   ExternalLink,
   Navigation,
+  Image as ImageIcon,
+  ZoomIn,
+  X,
+  ChevronLeft,
 } from 'lucide-react';
 import { useTenantStore } from '../../store/tenantStore';
 import { Tenant } from '../../types';
@@ -42,6 +46,8 @@ export default function TenantPublicPage() {
   const [tenant, setTenant] = useState<Tenant | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!slug) {
@@ -78,6 +84,24 @@ export default function TenantPublicPage() {
       root.style.removeProperty('--tp-gradient-to');
     };
   }, [tenant]);
+
+  // Lightbox keyboard navigation
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setLightboxIndex(null);
+      } else if (e.key === 'ArrowRight' && tenant?.mediaItems?.length) {
+        setLightboxIndex((prev) => (prev !== null ? (prev + 1) % tenant.mediaItems!.length : 0));
+      } else if (e.key === 'ArrowLeft' && tenant?.mediaItems?.length) {
+        setLightboxIndex((prev) =>
+          prev !== null ? (prev - 1 + tenant.mediaItems!.length) % tenant.mediaItems!.length : 0
+        );
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxIndex, tenant?.mediaItems]);
 
   if (loading) {
     return (
@@ -131,6 +155,17 @@ export default function TenantPublicPage() {
   };
 
   const hasLocation = Boolean(tenant.googleMapsUrl || tenant.address || (tenant.city && tenant.district));
+
+  const hasSocialMedia = Boolean(
+    tenant.socialMedia &&
+      (tenant.socialMedia.instagram || tenant.socialMedia.facebook || tenant.socialMedia.whatsapp)
+  );
+
+  const hasMedia = Boolean(tenant.mediaEnabled && tenant.mediaItems && tenant.mediaItems.length > 0);
+  const mediaItems = tenant.mediaItems || [];
+  const mediaCategories = Array.from(new Set(mediaItems.map((m) => m.category).filter(Boolean))) as string[];
+  const filteredMedia =
+    activeCategory === 'all' ? mediaItems : mediaItems.filter((m) => m.category === activeCategory);
 
   return (
     <div className="tenant-public" style={themeStyles}>
@@ -263,6 +298,163 @@ export default function TenantPublicPage() {
           </div>
         </div>
       </section>
+
+      {/* Sosyal Medya (Hakkımızda kısmından hemen sonra) */}
+      {hasSocialMedia && (
+        <section className="tp-social-section">
+          <div className="tp-social-section__inner">
+            <div className="tp-social-section__header">
+              <span className="tp-section-label">Bizi Takip Edin</span>
+              <h3 className="tp-social-section__title">Sosyal Medya Hesaplarımız</h3>
+              <p className="tp-social-section__desc">
+                Servis duyuruları, yeni cihaz onarımları ve güncel kampanyalarımız için bizi takip edin.
+              </p>
+            </div>
+
+            <div className="tp-social-section__cards">
+              {tenant.socialMedia?.instagram && (
+                <a
+                  href={`https://instagram.com/${tenant.socialMedia.instagram.replace(/^@/, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="tp-social-card tp-social-card--instagram"
+                >
+                  <div className="tp-social-card__icon-wrap">
+                    <InstagramIcon size={22} />
+                  </div>
+                  <div className="tp-social-card__info">
+                    <span className="tp-social-card__platform">Instagram</span>
+                    <span className="tp-social-card__handle">@{tenant.socialMedia.instagram.replace(/^@/, '')}</span>
+                  </div>
+                  <ExternalLink size={16} className="tp-social-card__arrow" />
+                </a>
+              )}
+
+              {tenant.socialMedia?.facebook && (
+                <a
+                  href={
+                    tenant.socialMedia.facebook.startsWith('http')
+                      ? tenant.socialMedia.facebook
+                      : `https://facebook.com/${tenant.socialMedia.facebook}`
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="tp-social-card tp-social-card--facebook"
+                >
+                  <div className="tp-social-card__icon-wrap">
+                    <FacebookIcon size={22} />
+                  </div>
+                  <div className="tp-social-card__info">
+                    <span className="tp-social-card__platform">Facebook</span>
+                    <span className="tp-social-card__handle">{tenant.socialMedia.facebook}</span>
+                  </div>
+                  <ExternalLink size={16} className="tp-social-card__arrow" />
+                </a>
+              )}
+
+              {tenant.socialMedia?.whatsapp && (
+                <a
+                  href={`https://wa.me/${tenant.socialMedia.whatsapp.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="tp-social-card tp-social-card--whatsapp"
+                >
+                  <div className="tp-social-card__icon-wrap">
+                    <MessageCircle size={22} />
+                  </div>
+                  <div className="tp-social-card__info">
+                    <span className="tp-social-card__platform">WhatsApp</span>
+                    <span className="tp-social-card__handle">
+                      {tenant.socialMedia.whatsapp.startsWith('+') ? tenant.socialMedia.whatsapp : `+${tenant.socialMedia.whatsapp}`}
+                    </span>
+                  </div>
+                  <ExternalLink size={16} className="tp-social-card__arrow" />
+                </a>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Medya & Fotoğraf Galerisi */}
+      {hasMedia && (
+        <section className="tp-gallery-section" id="galeri">
+          <div className="tp-gallery-section__inner">
+            <div className="tp-gallery-section__header">
+              <span className="tp-section-label">
+                <ImageIcon size={14} style={{ display: 'inline', marginRight: 6, verticalAlign: -2 }} />
+                Medya & Fotoğraflar
+              </span>
+              <h2 className="tp-section-title">{tenant.mediaTitle || 'Dükkanımız & Ürünlerimiz'}</h2>
+              {tenant.mediaDescription && (
+                <p className="tp-gallery-section__desc">{tenant.mediaDescription}</p>
+              )}
+
+              {/* Kategori Filtre Butonları */}
+              {mediaCategories.length > 1 && (
+                <div className="tp-gallery-filters">
+                  <button
+                    type="button"
+                    className={`tp-gallery-filter-btn ${activeCategory === 'all' ? 'tp-gallery-filter-btn--active' : ''}`}
+                    onClick={() => setActiveCategory('all')}
+                  >
+                    Tümü ({mediaItems.length})
+                  </button>
+                  {mediaCategories.map((cat) => {
+                    const count = mediaItems.filter((m) => m.category === cat).length;
+                    return (
+                      <button
+                        type="button"
+                        key={cat}
+                        className={`tp-gallery-filter-btn ${activeCategory === cat ? 'tp-gallery-filter-btn--active' : ''}`}
+                        onClick={() => setActiveCategory(cat)}
+                      >
+                        {cat} ({count})
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Galeri Izgarası */}
+            <div className="tp-gallery-grid">
+              {filteredMedia.map((item, idx) => {
+                const realIndex = mediaItems.findIndex((m) => m.id === item.id);
+                return (
+                  <div
+                    key={item.id || idx}
+                    className="tp-gallery-card"
+                    onClick={() => setLightboxIndex(realIndex >= 0 ? realIndex : idx)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') setLightboxIndex(realIndex >= 0 ? realIndex : idx);
+                    }}
+                  >
+                    <div className="tp-gallery-card__img-wrap">
+                      <img src={item.url} alt={item.title || `${brandTitle} Fotoğraf`} loading="lazy" />
+                      <div className="tp-gallery-card__overlay">
+                        <div className="tp-gallery-card__zoom-btn">
+                          <ZoomIn size={20} />
+                        </div>
+                        <div className="tp-gallery-card__meta">
+                          {item.category && (
+                            <span className="tp-gallery-card__tag">{item.category}</span>
+                          )}
+                          {item.title && (
+                            <h4 className="tp-gallery-card__caption">{item.title}</h4>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Desteklenen Markalar */}
       {tenant.deviceBrands && tenant.deviceBrands.length > 0 && (
@@ -400,42 +592,6 @@ export default function TenantPublicPage() {
         )}
       </section>
 
-      {/* Sosyal Medya */}
-      {tenant.socialMedia && (
-        <div className="tp-social">
-          {tenant.socialMedia.instagram && (
-            <a
-              href={`https://instagram.com/${tenant.socialMedia.instagram}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="tp-social__link"
-            >
-              <InstagramIcon size={16} /> @{tenant.socialMedia.instagram}
-            </a>
-          )}
-          {tenant.socialMedia.facebook && (
-            <a
-              href={`https://facebook.com/${tenant.socialMedia.facebook}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="tp-social__link"
-            >
-              <FacebookIcon size={16} /> Facebook
-            </a>
-          )}
-          {tenant.socialMedia.whatsapp && (
-            <a
-              href={`https://wa.me/${tenant.socialMedia.whatsapp}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="tp-social__link"
-            >
-              <MessageCircle size={16} /> WhatsApp
-            </a>
-          )}
-        </div>
-      )}
-
       {/* CTA */}
       <section className="tp-cta">
         <div className="tp-cta__card">
@@ -464,6 +620,74 @@ export default function TenantPublicPage() {
           <a href="/" target="_blank" rel="noopener noreferrer">TeknikPro</a> altyapısı ile çalışmaktadır.
         </div>
       </footer>
+
+      {/* Lightbox Modal */}
+      {lightboxIndex !== null && mediaItems[lightboxIndex] && (
+        <div className="tp-lightbox" onClick={() => setLightboxIndex(null)}>
+          <div className="tp-lightbox__dialog" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="tp-lightbox__close"
+              onClick={() => setLightboxIndex(null)}
+              aria-label="Kapat"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Previous Button */}
+            {mediaItems.length > 1 && (
+              <button
+                type="button"
+                className="tp-lightbox__nav tp-lightbox__nav--prev"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev !== null ? (prev - 1 + mediaItems.length) % mediaItems.length : 0));
+                }}
+                aria-label="Önceki Fotoğraf"
+              >
+                <ChevronLeft size={24} />
+              </button>
+            )}
+
+            {/* Next Button */}
+            {mediaItems.length > 1 && (
+              <button
+                type="button"
+                className="tp-lightbox__nav tp-lightbox__nav--next"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxIndex((prev) => (prev !== null ? (prev + 1) % mediaItems.length : 0));
+                }}
+                aria-label="Sonraki Fotoğraf"
+              >
+                <ChevronRight size={24} />
+              </button>
+            )}
+
+            <div className="tp-lightbox__image-wrap">
+              <img
+                src={mediaItems[lightboxIndex].url}
+                alt={mediaItems[lightboxIndex].title || 'Fotoğraf Detayı'}
+                className="tp-lightbox__img"
+              />
+            </div>
+
+            <div className="tp-lightbox__footer">
+              <div className="tp-lightbox__info">
+                {mediaItems[lightboxIndex].category && (
+                  <span className="tp-lightbox__category">{mediaItems[lightboxIndex].category}</span>
+                )}
+                {mediaItems[lightboxIndex].title && (
+                  <h3 className="tp-lightbox__title">{mediaItems[lightboxIndex].title}</h3>
+                )}
+              </div>
+              <div className="tp-lightbox__counter">
+                {lightboxIndex + 1} / {mediaItems.length}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

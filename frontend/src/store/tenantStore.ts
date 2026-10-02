@@ -49,6 +49,47 @@ export const DEFAULT_TENANT: Tenant = {
     instagram: 'teknikpro_servis',
     whatsapp: '905001234567',
   },
+  mediaEnabled: true,
+  mediaTitle: 'Atölyemiz & Dükkanımızdan Kareler',
+  mediaDescription: 'Modern laboratuvar ekipmanlarımız, temiz çalışma ortamımız ve orijinal yedek parça stoğumuz ile hizmetinizdeyiz.',
+  mediaItems: [
+    {
+      id: 'media-1',
+      url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=900&q=80',
+      title: 'Teknik Servis Laboratuvarımız',
+      category: 'Dükkan & Atölye',
+    },
+    {
+      id: 'media-2',
+      url: 'https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&w=900&q=80',
+      title: 'Mikroskop Altında Hassas Anakart Onarımı',
+      category: 'Onarım',
+    },
+    {
+      id: 'media-3',
+      url: 'https://images.unsplash.com/photo-1588508065123-287b28e013da?auto=format&fit=crop&w=900&q=80',
+      title: 'Ekran ve Batarya Değişim İstasyonu',
+      category: 'Onarım',
+    },
+    {
+      id: 'media-4',
+      url: 'https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&w=900&q=80',
+      title: 'Uzman Teknisyen Ekibimiz',
+      category: 'Dükkan & Atölye',
+    },
+    {
+      id: 'media-5',
+      url: 'https://images.unsplash.com/photo-1591488320449-011701bb6704?auto=format&fit=crop&w=900&q=80',
+      title: 'Geniş Orijinal Yedek Parça Stoğu',
+      category: 'Ürünler',
+    },
+    {
+      id: 'media-6',
+      url: 'https://images.unsplash.com/photo-1517430816045-df4b7de81a30?auto=format&fit=crop&w=900&q=80',
+      title: 'Hızlı Test ve Müşteri Teslimat Alanı',
+      category: 'Dükkan & Atölye',
+    },
+  ],
 };
 
 export const INITIAL_TENANTS: Tenant[] = [
