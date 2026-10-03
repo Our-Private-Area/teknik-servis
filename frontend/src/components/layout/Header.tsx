@@ -15,13 +15,15 @@ import {
   Wrench,
   ArrowRight,
   Smartphone,
-  Users
+  Users,
+  MessageSquare,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../../store/themeStore';
 import { useTenantStore } from '../../store/tenantStore';
 import { useAuthStore } from '../../store/authStore';
 import { useTenantServices, useTenantCustomers } from '../../hooks/useTenantData';
+import { subscribeToTenantConversations } from '../../services/chatService';
 import { SERVICE_STATUS_MAP } from '../../types';
 import toast from 'react-hot-toast';
 import './Header.css';
@@ -45,6 +47,20 @@ export default function Header({ title, subtitle, onToggleSidebar }: HeaderProps
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+
+  // Canlı okunmamış mesajları dinle
+  useEffect(() => {
+    if (!currentTenant?.id) return;
+    const unsub = subscribeToTenantConversations(currentTenant.id, (list) => {
+      const totalUnread = list.reduce(
+        (acc, c) => acc + (c.unreadCountTenant || 0),
+        0
+      );
+      setUnreadChatCount(totalUnread);
+    });
+    return () => unsub();
+  }, [currentTenant?.id]);
 
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -416,6 +432,22 @@ export default function Header({ title, subtitle, onToggleSidebar }: HeaderProps
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
+
+          {/* Canlı Mesajlar & Destek */}
+          <Link
+            to="/panel/mesajlar"
+            className="header__action-btn"
+            title="Canlı Mesajlar & Müşteri Sohbetleri"
+            style={{ position: 'relative' }}
+          >
+            <MessageSquare size={18} />
+            {unreadChatCount > 0 && (
+              <span
+                className="header__notification-dot"
+                style={{ background: '#a855f7' }}
+              />
+            )}
+          </Link>
 
           {/* Notifications */}
           <button className="header__action-btn header__action-btn--notification" title="Bildirimler">

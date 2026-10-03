@@ -11,6 +11,7 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
+  MessageSquare,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTenantServices, useTenantStock } from '../../../hooks/useTenantData';
@@ -21,6 +22,7 @@ import './Dashboard.css';
 /* Quick actions */
 const quickActions = [
   { label: 'Yeni Tamir Kaydet', icon: <Plus size={22} />, path: '/panel/servisler/yeni', color: 'blue' },
+  { label: 'Canlı Mesajlar', icon: <MessageSquare size={22} />, path: '/panel/mesajlar', color: 'purple' },
   { label: 'Tüm Servisler', icon: <ClipboardList size={22} />, path: '/panel/servisler', color: 'indigo' },
   { label: 'Müşteriler', icon: <Users size={22} />, path: '/panel/musteriler', color: 'emerald' },
   { label: 'Stok Yönetimi', icon: <Package size={22} />, path: '/panel/stok', color: 'amber' },
