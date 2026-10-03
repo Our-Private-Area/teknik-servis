@@ -15,6 +15,7 @@ import StaffList from './pages/admin/Staff/StaffList';
 import SettingsPage from './pages/admin/Settings/SettingsPage';
 import TenantManagement from './pages/admin/Tenants/TenantManagement';
 import WebsiteSettings from './pages/admin/Website/WebsiteSettings';
+import MessagesPage from './pages/admin/Messages/MessagesPage';
 import { useEffect } from 'react';
 import SuperAdminDashboard from './pages/super-admin/SuperAdminDashboard';
 import LandingPage from './pages/landing/LandingPage';
@@ -67,6 +68,7 @@ export default function App() {
           }
         >
           <Route index element={<Dashboard />} />
+          <Route path="mesajlar" element={<MessagesPage />} />
           <Route path="web-sitesi" element={<WebsiteSettings />} />
           <Route path="servisler" element={<ServiceList />} />
           <Route path="servisler/yeni" element={<NewService />} />

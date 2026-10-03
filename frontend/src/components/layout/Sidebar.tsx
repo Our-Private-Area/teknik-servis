@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -14,11 +14,14 @@ import {
   Zap,
   Building2,
   Globe,
+  MessageSquare,
   X,
 } from 'lucide-react';
 import './Sidebar.css';
 
 import { useAuthStore } from '../../store/authStore';
+import { useTenantStore } from '../../store/tenantStore';
+import { subscribeToTenantConversations } from '../../services/chatService';
 
 interface NavItem {
   path: string;
@@ -29,6 +32,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { path: '/panel', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
+  { path: '/panel/mesajlar', label: 'Canlı Mesajlar', icon: <MessageSquare size={20} color="#a855f7" /> },
   { path: '/panel/web-sitesi', label: 'Web Sayfam & Tema', icon: <Globe size={20} color="#38bdf8" /> },
   { path: '/panel/servisler', label: 'Servisler', icon: <Wrench size={20} /> },
   { path: '/panel/musteriler', label: 'Müşteriler', icon: <Users size={20} /> },
@@ -49,6 +53,21 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { currentUser } = useAuthStore();
+  const { currentTenant } = useTenantStore();
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  // Canlı okunmamış mesajları dinle
+  useEffect(() => {
+    if (!currentTenant?.id) return;
+    const unsub = subscribeToTenantConversations(currentTenant.id, (list) => {
+      const totalUnread = list.reduce(
+        (acc, c) => acc + (c.unreadCountTenant || 0),
+        0
+      );
+      setUnreadMessages(totalUnread);
+    });
+    return () => unsub();
+  }, [currentTenant?.id]);
 
   const isSuperAdmin = currentUser?.role === 'superadmin';
   const visibleNavItems = navItems.filter((item) => !item.superAdminOnly || isSuperAdmin);
@@ -113,6 +132,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 >
                   <span className="sidebar__link-icon">{item.icon}</span>
                   {(!collapsed || isOpen) && <span className="sidebar__link-label">{item.label}</span>}
+                  {item.path === '/panel/mesajlar' && unreadMessages > 0 && (!collapsed || isOpen) && (
+                    <span className="sidebar__badge">{unreadMessages}</span>
+                  )}
                   {isActive(item.path) && <span className="sidebar__link-indicator" />}
                 </NavLink>
               </li>

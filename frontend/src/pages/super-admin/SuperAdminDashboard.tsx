@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Crown,
@@ -31,12 +31,22 @@ import {
   Image as ImageIcon,
   MessageCircle,
   Upload,
+  Headphones,
+  Send,
+  CheckCheck,
 } from 'lucide-react';
 import { useTenantStore, getTenantDefaultEmail, PLATFORM_DOMAIN } from '../../store/tenantStore';
 import { usePlatformStore } from '../../store/platformStore';
 import { compressImageFile } from '../../utils/imageUtils';
 import { useAuthStore } from '../../store/authStore';
 import { Tenant } from '../../types';
+import { Conversation, ChatMessage } from '../../types/chat';
+import {
+  subscribeToSuperAdminConversations,
+  subscribeToMessages,
+  sendChatMessage,
+  markConversationAsRead,
+} from '../../services/chatService';
 import toast from 'react-hot-toast';
 import './SuperAdminDashboard.css';
 
@@ -46,8 +56,74 @@ export default function SuperAdminDashboard() {
   const { transactions, addTransaction, deleteTransaction } = usePlatformStore();
   const { logout } = useAuthStore();
 
-  const [activeTab, setActiveTab] = useState<'tenants' | 'finances'>('tenants');
+  const [activeTab, setActiveTab] = useState<'tenants' | 'finances' | 'support'>('tenants');
   const [searchTenant, setSearchTenant] = useState('');
+
+  // Canlı Destek Masası State
+  const [supportConversations, setSupportConversations] = useState<Conversation[]>([]);
+  const [selectedSupportConv, setSelectedSupportConv] = useState<Conversation | null>(null);
+  const [supportMessages, setSupportMessages] = useState<ChatMessage[]>([]);
+  const [adminReplyText, setAdminReplyText] = useState('');
+  const [isAdminSending, setIsAdminSending] = useState(false);
+  const supportMessagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Süper admin için tüm işletmelerin destek odalarını canlı dinle
+  useEffect(() => {
+    const unsub = subscribeToSuperAdminConversations((list) => {
+      setSupportConversations(list);
+      if (!selectedSupportConv && list.length > 0) {
+        setSelectedSupportConv(list[0]);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // Seçili işletmenin mesajlarını dinle
+  useEffect(() => {
+    if (!selectedSupportConv?.id) {
+      setSupportMessages([]);
+      return;
+    }
+
+    markConversationAsRead(selectedSupportConv.id, 'superadmin');
+
+    const unsub = subscribeToMessages(selectedSupportConv.id, (msgs) => {
+      setSupportMessages(msgs);
+    });
+    return () => unsub();
+  }, [selectedSupportConv?.id]);
+
+  useEffect(() => {
+    supportMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [supportMessages]);
+
+  const handleSendAdminReply = async () => {
+    if (!adminReplyText.trim() || !selectedSupportConv || isAdminSending) return;
+    setIsAdminSending(true);
+    const text = adminReplyText.trim();
+    setAdminReplyText('');
+
+    try {
+      await sendChatMessage({
+        conversationId: selectedSupportConv.id,
+        tenantId: selectedSupportConv.tenantId,
+        senderType: 'superadmin',
+        senderId: 'superadmin',
+        senderName: 'TeknikPro Süper Admin',
+        text,
+        isSupportChannel: true,
+      });
+    } catch {
+      toast.error('Mesaj gönderilemedi.');
+    } finally {
+      setIsAdminSending(false);
+    }
+  };
+
+  const totalUnreadSupportAdmin = supportConversations.reduce(
+    (acc, c) => acc + (c.unreadCountSuperAdmin || 0),
+    0
+  );
 
   // Modals & Editing
   const [showTenantModal, setShowTenantModal] = useState(false);
@@ -496,6 +572,19 @@ export default function SuperAdminDashboard() {
             <Receipt size={16} />
             <span>Gelir / Gider Defterim ({transactions.length})</span>
           </button>
+          <button
+            type="button"
+            className={`super-tab ${activeTab === 'support' ? 'super-tab--active' : ''}`}
+            onClick={() => setActiveTab('support')}
+          >
+            <Headphones size={16} />
+            <span>İşletme Canlı Destek Masası ({supportConversations.length})</span>
+            {totalUnreadSupportAdmin > 0 && (
+              <span style={{ background: '#ef4444', color: 'white', fontSize: 10, fontWeight: 700, padding: '1px 6px', borderRadius: 10, marginLeft: 4 }}>
+                {totalUnreadSupportAdmin}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Tab 1: Tenants List */}
@@ -834,6 +923,187 @@ export default function SuperAdminDashboard() {
                 })}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Tab 3: Business Live Support Desk */}
+        {activeTab === 'support' && (
+          <div className="super-card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', height: '620px' }}>
+              {/* Sol: Destek Talebi Olan İşletmeler Listesi */}
+              <div style={{ width: '320px', borderRight: '1px solid rgba(255, 255, 255, 0.08)', background: '#0a0e14', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ padding: '16px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                  <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Headphones size={18} color="#10b981" />
+                    <span>İşletme Destek Masası</span>
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
+                    İşletmelerden gelen resmi platform yardım ve soru talepleri
+                  </p>
+                </div>
+
+                <div style={{ flex: 1, overflowY: 'auto' }}>
+                  {supportConversations.length === 0 ? (
+                    <div style={{ padding: '24px 16px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                      Henüz bir işletmeden destek mesajı gelmedi.
+                    </div>
+                  ) : (
+                    supportConversations.map((conv) => {
+                      const isSelected = selectedSupportConv?.id === conv.id;
+                      return (
+                        <div
+                          key={conv.id}
+                          onClick={() => setSelectedSupportConv(conv)}
+                          style={{
+                            padding: '14px 16px',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
+                            background: isSelected ? 'rgba(16, 185, 129, 0.12)' : 'transparent',
+                            borderLeft: isSelected ? '3px solid #10b981' : '3px solid transparent',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            gap: 12,
+                          }}
+                        >
+                          <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'rgba(255, 255, 255, 0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#38bdf8' }}>
+                            {conv.tenantName?.charAt(0).toUpperCase() || 'F'}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: 'white', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {conv.tenantName}
+                              </span>
+                            </div>
+                            <p style={{ margin: '3px 0 0 0', fontSize: 12, color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {conv.lastMessage || 'Destek talebi'}
+                            </p>
+                          </div>
+                          {conv.unreadCountSuperAdmin > 0 && (
+                            <span style={{ background: '#ef4444', color: 'white', fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 10, height: 'fit-content' }}>
+                              {conv.unreadCountSuperAdmin}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Sağ: Seçili İşletmeyle Canlı Yazışma */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#070a0e' }}>
+                {selectedSupportConv ? (
+                  <>
+                    <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', background: '#0c1117', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'white' }}>
+                          {selectedSupportConv.tenantName}
+                        </h4>
+                        <span style={{ fontSize: 11, color: '#94a3b8' }}>
+                          Tenant ID: <code>{selectedSupportConv.tenantId}</code>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {supportMessages.length === 0 ? (
+                        <div style={{ textAlign: 'center', color: '#64748b', marginTop: 40 }}>
+                          Henüz bir mesaj bulunmuyor.
+                        </div>
+                      ) : (
+                        supportMessages.map((msg) => {
+                          const isSuperAdmin = msg.senderType === 'superadmin';
+                          const timeFormatted = msg.createdAt
+                            ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            : '';
+                          return (
+                            <div
+                              key={msg.id}
+                              style={{
+                                alignSelf: isSuperAdmin ? 'flex-end' : 'flex-start',
+                                maxWidth: '75%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: isSuperAdmin ? 'flex-end' : 'flex-start',
+                              }}
+                            >
+                              <div
+                                style={{
+                                  padding: '10px 14px',
+                                  borderRadius: 12,
+                                  background: isSuperAdmin ? '#0071e3' : '#1e293b',
+                                  color: 'white',
+                                  fontSize: 13,
+                                  lineHeight: 1.45,
+                                }}
+                              >
+                                {msg.text}
+                              </div>
+                              <div style={{ fontSize: 10, color: '#64748b', marginTop: 3, display: 'flex', gap: 4 }}>
+                                <span>{msg.senderName}</span>
+                                <span>•</span>
+                                <span>{timeFormatted}</span>
+                                {isSuperAdmin && <CheckCheck size={12} color="rgba(255,255,255,0.7)" />}
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                      <div ref={supportMessagesEndRef} />
+                    </div>
+
+                    <div style={{ padding: '14px 20px', borderTop: '1px solid rgba(255, 255, 255, 0.08)', background: '#0c1117', display: 'flex', gap: 10 }}>
+                      <input
+                        type="text"
+                        placeholder="İşletmeye platform yanıtınızı yazın... (Enter)"
+                        value={adminReplyText}
+                        onChange={(e) => setAdminReplyText(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendAdminReply();
+                          }
+                        }}
+                        style={{
+                          flex: 1,
+                          background: 'rgba(0, 0, 0, 0.35)',
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          borderRadius: 8,
+                          padding: '10px 14px',
+                          color: 'white',
+                          fontSize: 13,
+                          outline: 'none',
+                        }}
+                        disabled={isAdminSending}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSendAdminReply}
+                        disabled={!adminReplyText.trim() || isAdminSending}
+                        style={{
+                          background: '#0071e3',
+                          border: 'none',
+                          color: 'white',
+                          padding: '0 18px',
+                          borderRadius: 8,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          fontWeight: 600,
+                        }}
+                      >
+                        <Send size={15} />
+                        <span>Gönder</span>
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+                    Yazışmak için soldan bir işletme seçin.
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </main>

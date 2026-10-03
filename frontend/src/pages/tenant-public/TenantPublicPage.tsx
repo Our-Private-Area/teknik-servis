@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useTenantStore } from '../../store/tenantStore';
 import { Tenant } from '../../types';
+import ChatWidget from '../../components/chat/ChatWidget';
 import './TenantPublicPage.css';
 
 const InstagramIcon = ({ size = 16 }: { size?: number }) => (
@@ -688,6 +689,9 @@ export default function TenantPublicPage() {
           </div>
         </div>
       )}
+
+      {/* Canlı Müşteri Sohbet Widget'ı */}
+      {tenant && <ChatWidget tenant={tenant} />}
     </div>
   );
 }

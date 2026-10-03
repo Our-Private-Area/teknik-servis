@@ -105,6 +105,18 @@
   color: var(--accent-primary);
 }
 
+.sidebar__badge {
+  margin-left: auto;
+  background: #ef4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
 .sidebar__link-icon {
   display: flex;
   align-items: center;
