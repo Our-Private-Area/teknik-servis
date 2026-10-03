@@ -1,6 +1,9 @@
 .admin-layout {
   display: flex;
   min-height: 100vh;
+  min-width: 0;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .admin-layout__main {
@@ -10,6 +13,9 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-width: 0;
+  max-width: calc(100vw - var(--sidebar-width));
+  overflow-x: hidden;
 }
 
 .admin-layout__content {
@@ -17,15 +23,18 @@
   padding: var(--space-6);
   margin-top: var(--header-height);
   animation: fadeInUp 0.3s ease forwards;
+  min-width: 0;
+  max-width: 100%;
 }
 
 @media (max-width: 768px) {
   .admin-layout__main {
     margin-left: 0;
+    max-width: 100vw;
   }
 
   .admin-layout__content {
-    padding: 14px 12px 40px;
+    padding: 12px 10px 30px;
     margin-top: 58px;
   }
 }

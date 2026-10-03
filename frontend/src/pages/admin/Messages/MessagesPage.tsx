@@ -12,6 +12,7 @@ import {
   Phone,
   Sparkles,
   Building2,
+  ArrowLeft,
 } from 'lucide-react';
 import { useTenantStore } from '../../../store/tenantStore';
 import { useAuthStore } from '../../../store/authStore';
@@ -36,6 +37,8 @@ export default function MessagesPage() {
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  // Mobil & Tablet görünüm durumu: 'list' (sohbet listesi) veya 'chat' (aktif mesajlaşma penceresi)
+  const [mobileView, setMobileView] = useState<'list' | 'chat'>('list');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -46,10 +49,15 @@ export default function MessagesPage() {
     const unsubscribe = subscribeToTenantConversations(currentTenant.id, (list) => {
       setConversations(list);
 
-      // Eğer henüz seçili konuşma yoksa ve müşteri listesi doluysa ilkini seç
+      // Masaüstü ekranlarda (>= 992px) henüz seçili konuşma yoksa ilkini otomatik seç
       if (!selectedConv && list.length > 0 && activeTab === 'customers') {
         const firstCust = list.find((c) => c.type === 'customer_tenant');
-        if (firstCust) setSelectedConv(firstCust);
+        if (firstCust) {
+          setSelectedConv(firstCust);
+          if (window.innerWidth >= 992) {
+            setMobileView('chat');
+          }
+        }
       }
     });
 
@@ -64,10 +72,15 @@ export default function MessagesPage() {
       // Platform Destek Kanalını getir/oluştur
       getOrCreateTenantAdminSupportConversation(currentTenant.id, currentTenant.name).then((supportConv) => {
         setSelectedConv(supportConv);
+        if (window.innerWidth >= 992) {
+          setMobileView('chat');
+        }
       });
     } else {
       const firstCust = conversations.find((c) => c.type === 'customer_tenant');
-      setSelectedConv(firstCust || null);
+      if (window.innerWidth >= 992) {
+        setSelectedConv(firstCust || null);
+      }
     }
   }, [activeTab, currentTenant?.id]);
 
@@ -155,7 +168,7 @@ export default function MessagesPage() {
   ];
 
   return (
-    <div className="tp-messages-page">
+    <div className={`tp-messages-page tp-messages-page--view-${mobileView}`}>
       {/* Sol Sütun: Konuşmalar Listesi */}
       <aside className="tp-messages-sidebar">
         <div className="tp-messages-sidebar__header">
@@ -256,7 +269,10 @@ export default function MessagesPage() {
                   <div
                     key={conv.id}
                     className={`tp-conv-item ${isSelected ? 'tp-conv-item--active' : ''}`}
-                    onClick={() => setSelectedConv(conv)}
+                    onClick={() => {
+                      setSelectedConv(conv);
+                      setMobileView('chat');
+                    }}
                   >
                     <div className="tp-conv-item__avatar">
                       {conv.customer?.name?.charAt(0).toUpperCase() || 'M'}
@@ -285,7 +301,10 @@ export default function MessagesPage() {
             /* Platform Destek Sekmesi */
             <div
               className={`tp-conv-item ${selectedConv?.type === 'tenant_superadmin' ? 'tp-conv-item--active' : ''}`}
-              onClick={() => {}}
+              onClick={() => {
+                if (supportConv) setSelectedConv(supportConv);
+                setMobileView('chat');
+              }}
             >
               <div className="tp-conv-item__avatar" style={{ color: '#10b981' }}>
                 <Headphones size={20} />
@@ -316,33 +335,56 @@ export default function MessagesPage() {
           <>
             {/* Header Bar */}
             <div className="tp-chat-header-bar">
-              <div className="tp-chat-header-bar__user">
-                <div>
-                  <h3 className="tp-chat-header-bar__name">
-                    {activeTab === 'support'
-                      ? 'TeknikPro Süper Admin & Platform Desteği'
-                      : selectedConv.customer?.name || 'Ziyaretçi'}
-                  </h3>
-                  <div className="tp-chat-header-bar__sub">
-                    {activeTab === 'customers' ? (
-                      <>
-                        {selectedConv.customer?.phone && (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                            <Phone size={12} />
-                            <a
-                              href={`tel:${selectedConv.customer.phone}`}
-                              style={{ color: 'inherit', textDecoration: 'none' }}
-                            >
-                              {selectedConv.customer.phone}
-                            </a>
-                          </span>
-                        )}
-                        <span>•</span>
-                        <span>Oda ID: <code>{selectedConv.customer?.sessionId?.substring(0, 10)}...</code></span>
-                      </>
+              <div className="tp-chat-header-bar__left">
+                {/* Mobil & Tablette Geri Dön Butonu */}
+                <button
+                  type="button"
+                  className="tp-chat-back-btn"
+                  onClick={() => setMobileView('list')}
+                  title="Konuşmalara Dön"
+                  aria-label="Konuşmalara Dön"
+                >
+                  <ArrowLeft size={18} />
+                  <span>Sohbetler</span>
+                </button>
+
+                <div className="tp-chat-header-bar__user">
+                  <div className="tp-chat-header-bar__avatar">
+                    {activeTab === 'support' ? (
+                      <Headphones size={18} color="#10b981" />
                     ) : (
-                      <span>Resmi SaaS platform yönetim ve teknik yardım kanalı</span>
+                      selectedConv.customer?.name?.charAt(0).toUpperCase() || 'M'
                     )}
+                  </div>
+                  <div className="tp-chat-header-bar__info">
+                    <h3 className="tp-chat-header-bar__name">
+                      {activeTab === 'support'
+                        ? 'TeknikPro Süper Admin & Platform Desteği'
+                        : selectedConv.customer?.name || 'Ziyaretçi'}
+                    </h3>
+                    <div className="tp-chat-header-bar__sub">
+                      {activeTab === 'customers' ? (
+                        <>
+                          {selectedConv.customer?.phone && (
+                            <span className="tp-chat-header-phone">
+                              <Phone size={11} />
+                              <a
+                                href={`tel:${selectedConv.customer.phone}`}
+                                style={{ color: 'inherit', textDecoration: 'none' }}
+                              >
+                                {selectedConv.customer.phone}
+                              </a>
+                            </span>
+                          )}
+                          {selectedConv.customer?.phone && <span className="tp-chat-header-sep">•</span>}
+                          <span className="tp-chat-header-room">
+                            Oda: <code>{selectedConv.customer?.sessionId?.substring(0, 8)}</code>
+                          </span>
+                        </>
+                      ) : (
+                        <span>Resmi platform destek kanalı</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -357,8 +399,8 @@ export default function MessagesPage() {
                     className="tp-chat-action-btn tp-chat-action-btn--primary"
                     title="Bu müşteriye hemen servis kaydı aç"
                   >
-                    <PlusCircle size={14} />
-                    <span>Servis Kaydı Aç</span>
+                    <PlusCircle size={15} />
+                    <span className="tp-chat-btn-text">Servis Kaydı Aç</span>
                   </Link>
                 )}
 
@@ -369,8 +411,8 @@ export default function MessagesPage() {
                   className="tp-chat-action-btn"
                   title="Web sitenizdeki canlı widget'ı test edin"
                 >
-                  <ExternalLink size={14} />
-                  <span>Sitede Test Et</span>
+                  <ExternalLink size={15} />
+                  <span className="tp-chat-btn-text">Sitede Test Et</span>
                 </a>
               </div>
             </div>
@@ -389,7 +431,6 @@ export default function MessagesPage() {
                 </div>
               ) : (
                 messages.map((msg) => {
-                  // Müşteri sekmesinde "me" = tenant. Destek sekmesinde "me" = tenant.
                   const isMe = msg.senderType === 'tenant';
                   const timeFormatted = msg.createdAt
                     ? new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -417,8 +458,8 @@ export default function MessagesPage() {
             {/* Hızlı Cevap Şablonları (Müşteri sekmesinde) */}
             {activeTab === 'customers' && (
               <div className="tp-chat-quick-replies">
-                <span style={{ fontSize: 11, color: 'var(--text-muted, #64748b)', fontWeight: 600 }}>
-                  Hızlı Şablonlar:
+                <span className="tp-quick-reply-label">
+                  Hızlı:
                 </span>
                 {quickReplies.map((r, i) => (
                   <button
@@ -426,6 +467,7 @@ export default function MessagesPage() {
                     type="button"
                     className="tp-quick-reply-btn"
                     onClick={() => handleSendMessage(r)}
+                    title={r}
                   >
                     {r}
                   </button>
@@ -464,6 +506,15 @@ export default function MessagesPage() {
             <p>
               Müşterileriniz web sayfanızdan yazdıkça sol listede belirecektir. Ya da TeknikPro Destek sekmesinden platform yöneticileriyle iletişime geçebilirsiniz.
             </p>
+            <button
+              type="button"
+              className="tp-chat-back-btn"
+              style={{ display: 'inline-flex', marginTop: 12 }}
+              onClick={() => setMobileView('list')}
+            >
+              <ArrowLeft size={16} />
+              <span>Konuşma Listesini Göster</span>
+            </button>
           </div>
         )}
       </main>
