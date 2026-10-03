@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Phone,
   Sparkles,
+  Building2,
 } from 'lucide-react';
 import { useTenantStore } from '../../../store/tenantStore';
 import { useAuthStore } from '../../../store/authStore';
@@ -25,7 +26,7 @@ import {
 import './MessagesPage.css';
 
 export default function MessagesPage() {
-  const { currentTenant } = useTenantStore();
+  const { currentTenant, tenants, setCurrentTenant } = useTenantStore();
   const { currentUser } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<'customers' | 'support'>('customers');
@@ -163,6 +164,37 @@ export default function MessagesPage() {
               <MessageSquare size={18} color="var(--accent-primary, #3b82f6)" />
               <span>Canlı Mesajlar</span>
             </h2>
+          </div>
+
+          {/* Aktif İşletme Göstergesi & Hızlı Seçici */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: 'rgba(255, 255, 255, 0.05)', borderRadius: 8, fontSize: 12 }}>
+            <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Building2 size={12} color="var(--accent-primary, #3b82f6)" />
+              İşletme:
+            </span>
+            <select
+              value={currentTenant.id}
+              onChange={(e) => {
+                const found = tenants.find((t) => t.id === e.target.value);
+                if (found) setCurrentTenant(found);
+              }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'white',
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: 'pointer',
+                outline: 'none',
+                maxWidth: '180px',
+              }}
+            >
+              {tenants.map((t) => (
+                <option key={t.id} value={t.id} style={{ background: '#0f172a', color: 'white' }}>
+                  {t.brandName || t.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Sekmeler: Müşteriler vs TeknikPro Destek */}

@@ -125,14 +125,25 @@ export default function ChatWidget({ tenant }: ChatWidgetProps) {
   // Mesaj Gönder
   const handleSendMessage = async (customText?: string) => {
     const textToSend = (customText || inputText).trim();
-    if (!textToSend || !conversation || isSending) return;
+    if (!textToSend || isSending) return;
 
     setIsSending(true);
     if (!customText) setInputText('');
 
     try {
+      let activeConv = conversation;
+      if (!activeConv) {
+        activeConv = await getOrCreateCustomerConversation(tenant.id, tenant.name, {
+          sessionId,
+          name: customerName || 'Ziyaretçi',
+          phone: customerPhone || undefined,
+        });
+        setConversation(activeConv);
+        setIsInitialized(true);
+      }
+
       await sendChatMessage({
-        conversationId: conversation.id,
+        conversationId: activeConv.id,
         tenantId: tenant.id,
         senderType: 'customer',
         senderId: sessionId,

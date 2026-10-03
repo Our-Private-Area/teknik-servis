@@ -63,5 +63,15 @@ service cloud.firestore {
     match /platformTransactions/{ptxId} {
       allow read, write: if isSignedIn();
     }
+
+    // 8. Canlı Sohbet Odaları ve Mesajlar (Conversations & Messages)
+    // Ziyaretçi müşteriler ve işletme yetkilileri canlı sohbet edebilir
+    match /conversations/{conversationId} {
+      allow read, write: if true;
+
+      match /messages/{messageId} {
+        allow read, write: if true;
+      }
+    }
   }
 }
