@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   MessageSquare,
@@ -24,6 +24,7 @@ import {
   markConversationAsRead,
   getOrCreateTenantAdminSupportConversation,
 } from '../../../services/chatService';
+import toast from 'react-hot-toast';
 import './MessagesPage.css';
 
 export default function MessagesPage() {
@@ -32,7 +33,8 @@ export default function MessagesPage() {
 
   const [activeTab, setActiveTab] = useState<'customers' | 'support'>('customers');
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConv, setSelectedConv] = useState<Conversation | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [supportConv, setSupportConv] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -42,22 +44,25 @@ export default function MessagesPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 1. İşletmenin tüm konuşma odalarını canlı dinle
+  // 1. İşletmenin platform destek kanalını garantiye al
+  useEffect(() => {
+    if (!currentTenant?.id) return;
+    getOrCreateTenantAdminSupportConversation(currentTenant.id, currentTenant.brandName || currentTenant.name).then((conv) => {
+      setSupportConv(conv);
+    });
+  }, [currentTenant?.id, currentTenant?.brandName, currentTenant?.name]);
+
+  // 2. İşletmenin tüm konuşma odalarını canlı dinle
   useEffect(() => {
     if (!currentTenant?.id) return;
 
     const unsubscribe = subscribeToTenantConversations(currentTenant.id, (list) => {
       setConversations(list);
 
-      // Masaüstü ekranlarda (>= 992px) henüz seçili konuşma yoksa ilkini otomatik seç
-      if (!selectedConv && list.length > 0 && activeTab === 'customers') {
-        const firstCust = list.find((c) => c.type === 'customer_tenant');
-        if (firstCust) {
-          setSelectedConv(firstCust);
-          if (window.innerWidth >= 992) {
-            setMobileView('chat');
-          }
-        }
+      // Destek odasını da canlı güncelle
+      const foundSupport = list.find((c) => c.type === 'tenant_superadmin');
+      if (foundSupport) {
+        setSupportConv(foundSupport);
       }
     });
 
@@ -66,42 +71,75 @@ export default function MessagesPage() {
     };
   }, [currentTenant?.id]);
 
-  // 2. Sekme değiştiğinde
-  useEffect(() => {
-    if (activeTab === 'support') {
-      // Platform Destek Kanalını getir/oluştur
-      getOrCreateTenantAdminSupportConversation(currentTenant.id, currentTenant.name).then((supportConv) => {
-        setSelectedConv(supportConv);
-        if (window.innerWidth >= 992) {
-          setMobileView('chat');
-        }
-      });
-    } else {
-      const firstCust = conversations.find((c) => c.type === 'customer_tenant');
-      if (window.innerWidth >= 992) {
-        setSelectedConv(firstCust || null);
-      }
-    }
-  }, [activeTab, currentTenant?.id]);
+  // Müşteri konuşmalarını filtrele
+  const customerConversations = useMemo(() => {
+    return conversations.filter((c) => c.type === 'customer_tenant');
+  }, [conversations]);
 
-  // 3. Seçili konuşmanın mesajlarını canlı dinle
+  const filteredCustomers = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return customerConversations;
+    return customerConversations.filter((c) => {
+      const nameMatch = c.customer?.name?.toLowerCase().includes(q);
+      const phoneMatch = c.customer?.phone?.includes(q);
+      const msgMatch = c.lastMessage?.toLowerCase().includes(q);
+      return nameMatch || phoneMatch || msgMatch;
+    });
+  }, [customerConversations, searchQuery]);
+
+  // Masaüstünde ilk müşteriyi otomatik seç
   useEffect(() => {
-    if (!selectedConv?.id) {
+    if (!selectedCustomerId && customerConversations.length > 0 && window.innerWidth >= 992) {
+      setSelectedCustomerId(customerConversations[0].id);
+    }
+  }, [customerConversations, selectedCustomerId]);
+
+  // 3. Aktif seçili konuşmayı SEKME BAZLI olarak KESİN olarak belirle (Asla birbirine karışamaz!)
+  const activeConversation: Conversation | null = useMemo(() => {
+    if (activeTab === 'support') {
+      return (
+        supportConv || {
+          id: `conv_support_${currentTenant.id}`,
+          type: 'tenant_superadmin',
+          tenantId: currentTenant.id,
+          tenantName: currentTenant.brandName || currentTenant.name,
+          lastMessage: 'TeknikPro platform desteğine hoş geldiniz.',
+          lastMessageAt: new Date().toISOString(),
+          lastSenderType: 'superadmin',
+          unreadCountTenant: 0,
+          unreadCountCustomer: 0,
+          unreadCountSuperAdmin: 0,
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+      );
+    }
+
+    if (selectedCustomerId) {
+      return customerConversations.find((c) => c.id === selectedCustomerId) || null;
+    }
+    return customerConversations[0] || null;
+  }, [activeTab, supportConv, currentTenant.id, currentTenant.brandName, currentTenant.name, selectedCustomerId, customerConversations]);
+
+  // 4. Aktif konuşmanın mesajlarını canlı dinle
+  useEffect(() => {
+    if (!activeConversation?.id) {
       setMessages([]);
       return;
     }
 
     // Okundu olarak işaretle
-    markConversationAsRead(selectedConv.id, 'tenant');
+    markConversationAsRead(activeConversation.id, 'tenant');
 
-    const unsubscribe = subscribeToMessages(selectedConv.id, (newMsgs) => {
+    const unsubscribe = subscribeToMessages(activeConversation.id, (newMsgs) => {
       setMessages(newMsgs);
     });
 
     return () => {
       unsubscribe();
     };
-  }, [selectedConv?.id]);
+  }, [activeConversation?.id]);
 
   // Mesajlar değiştikçe en alta kaydır
   useEffect(() => {
@@ -111,14 +149,14 @@ export default function MessagesPage() {
   // Mesaj Gönder
   const handleSendMessage = async (textOverride?: string) => {
     const textToSend = (textOverride || inputText).trim();
-    if (!textToSend || !selectedConv || isSending) return;
+    if (!textToSend || !activeConversation || isSending) return;
 
     setIsSending(true);
     if (!textOverride) setInputText('');
 
     try {
       await sendChatMessage({
-        conversationId: selectedConv.id,
+        conversationId: activeConversation.id,
         tenantId: currentTenant.id,
         senderType: 'tenant',
         senderId: currentUser?.id || 'tenant_admin',
@@ -128,6 +166,7 @@ export default function MessagesPage() {
       });
     } catch (err) {
       console.error('Mesaj gönderilemedi:', err);
+      toast.error('Mesaj gönderilemedi.');
     } finally {
       setIsSending(false);
     }
@@ -140,24 +179,11 @@ export default function MessagesPage() {
     }
   };
 
-  // Müşteri konuşmalarını filtrele
-  const customerConversations = conversations.filter((c) => c.type === 'customer_tenant');
-  const filteredCustomers = customerConversations.filter((c) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    const nameMatch = c.customer?.name?.toLowerCase().includes(q);
-    const phoneMatch = c.customer?.phone?.includes(q);
-    const msgMatch = c.lastMessage?.toLowerCase().includes(q);
-    return nameMatch || phoneMatch || msgMatch;
-  });
-
   const totalUnreadCustomers = customerConversations.reduce(
     (acc, curr) => acc + (curr.unreadCountTenant || 0),
     0
   );
 
-  // Destek kanalı okunmadı kontrolü
-  const supportConv = conversations.find((c) => c.type === 'tenant_superadmin');
   const unreadSupportCount = supportConv?.unreadCountTenant || 0;
 
   const quickReplies = [
@@ -215,7 +241,12 @@ export default function MessagesPage() {
             <button
               type="button"
               className={`tp-messages-tab ${activeTab === 'customers' ? 'tp-messages-tab--active' : ''}`}
-              onClick={() => setActiveTab('customers')}
+              onClick={() => {
+                setActiveTab('customers');
+                if (window.innerWidth < 992) {
+                  setMobileView('list');
+                }
+              }}
             >
               <Users size={14} />
               <span>Müşteriler</span>
@@ -227,7 +258,12 @@ export default function MessagesPage() {
             <button
               type="button"
               className={`tp-messages-tab ${activeTab === 'support' ? 'tp-messages-tab--active' : ''}`}
-              onClick={() => setActiveTab('support')}
+              onClick={() => {
+                setActiveTab('support');
+                if (window.innerWidth < 992) {
+                  setMobileView('chat');
+                }
+              }}
             >
               <Headphones size={14} />
               <span>TeknikPro Destek</span>
@@ -260,7 +296,7 @@ export default function MessagesPage() {
               </div>
             ) : (
               filteredCustomers.map((conv) => {
-                const isSelected = selectedConv?.id === conv.id;
+                const isSelected = activeConversation?.id === conv.id;
                 const timeStr = conv.lastMessageAt
                   ? new Date(conv.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                   : '';
@@ -270,7 +306,7 @@ export default function MessagesPage() {
                     key={conv.id}
                     className={`tp-conv-item ${isSelected ? 'tp-conv-item--active' : ''}`}
                     onClick={() => {
-                      setSelectedConv(conv);
+                      setSelectedCustomerId(conv.id);
                       setMobileView('chat');
                     }}
                   >
@@ -300,9 +336,8 @@ export default function MessagesPage() {
           ) : (
             /* Platform Destek Sekmesi */
             <div
-              className={`tp-conv-item ${selectedConv?.type === 'tenant_superadmin' ? 'tp-conv-item--active' : ''}`}
+              className={`tp-conv-item ${activeTab === 'support' ? 'tp-conv-item--active' : ''}`}
               onClick={() => {
-                if (supportConv) setSelectedConv(supportConv);
                 setMobileView('chat');
               }}
             >
@@ -331,7 +366,7 @@ export default function MessagesPage() {
 
       {/* Sağ Sütun: Aktif Mesaj Akışı */}
       <main className="tp-messages-main">
-        {selectedConv ? (
+        {activeConversation ? (
           <>
             {/* Header Bar */}
             <div className="tp-chat-header-bar">
@@ -353,32 +388,32 @@ export default function MessagesPage() {
                     {activeTab === 'support' ? (
                       <Headphones size={18} color="#10b981" />
                     ) : (
-                      selectedConv.customer?.name?.charAt(0).toUpperCase() || 'M'
+                      activeConversation.customer?.name?.charAt(0).toUpperCase() || 'M'
                     )}
                   </div>
                   <div className="tp-chat-header-bar__info">
                     <h3 className="tp-chat-header-bar__name">
                       {activeTab === 'support'
                         ? 'TeknikPro Süper Admin & Platform Desteği'
-                        : selectedConv.customer?.name || 'Ziyaretçi'}
+                        : activeConversation.customer?.name || 'Ziyaretçi'}
                     </h3>
                     <div className="tp-chat-header-bar__sub">
                       {activeTab === 'customers' ? (
                         <>
-                          {selectedConv.customer?.phone && (
+                          {activeConversation.customer?.phone && (
                             <span className="tp-chat-header-phone">
                               <Phone size={11} />
                               <a
-                                href={`tel:${selectedConv.customer.phone}`}
+                                href={`tel:${activeConversation.customer.phone}`}
                                 style={{ color: 'inherit', textDecoration: 'none' }}
                               >
-                                {selectedConv.customer.phone}
+                                {activeConversation.customer.phone}
                               </a>
                             </span>
                           )}
-                          {selectedConv.customer?.phone && <span className="tp-chat-header-sep">•</span>}
+                          {activeConversation.customer?.phone && <span className="tp-chat-header-sep">•</span>}
                           <span className="tp-chat-header-room">
-                            Oda: <code>{selectedConv.customer?.sessionId?.substring(0, 8)}</code>
+                            Oda: <code>{activeConversation.customer?.sessionId?.substring(0, 8)}</code>
                           </span>
                         </>
                       ) : (
@@ -394,8 +429,8 @@ export default function MessagesPage() {
                 {activeTab === 'customers' && (
                   <Link
                     to={`/panel/servisler/yeni?musteri=${encodeURIComponent(
-                      selectedConv.customer?.name || ''
-                    )}&telefon=${encodeURIComponent(selectedConv.customer?.phone || '')}`}
+                      activeConversation.customer?.name || ''
+                    )}&telefon=${encodeURIComponent(activeConversation.customer?.phone || '')}`}
                     className="tp-chat-action-btn tp-chat-action-btn--primary"
                     title="Bu müşteriye hemen servis kaydı aç"
                   >

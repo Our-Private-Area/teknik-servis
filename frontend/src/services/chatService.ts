@@ -128,10 +128,18 @@ export function saveLocalMessage(msg: ChatMessage) {
       conv.lastMessage = msg.text;
       conv.lastMessageAt = msg.createdAt;
       conv.lastSenderType = msg.senderType;
-      if (msg.senderType === 'customer') {
-        conv.unreadCountTenant = (conv.unreadCountTenant || 0) + 1;
-      } else if (msg.senderType === 'tenant') {
-        conv.unreadCountCustomer = (conv.unreadCountCustomer || 0) + 1;
+      if (conv.type === 'tenant_superadmin') {
+        if (msg.senderType === 'tenant') {
+          conv.unreadCountSuperAdmin = (conv.unreadCountSuperAdmin || 0) + 1;
+        } else if (msg.senderType === 'superadmin') {
+          conv.unreadCountTenant = (conv.unreadCountTenant || 0) + 1;
+        }
+      } else {
+        if (msg.senderType === 'customer') {
+          conv.unreadCountTenant = (conv.unreadCountTenant || 0) + 1;
+        } else if (msg.senderType === 'tenant') {
+          conv.unreadCountCustomer = (conv.unreadCountCustomer || 0) + 1;
+        }
       }
       localStorage.setItem(LOCAL_ALL_CONVS_KEY, JSON.stringify(convs));
       broadcastChatEvent({ type: 'CONV_UPDATED', conversation: conv });
@@ -223,6 +231,12 @@ export async function getOrCreateTenantAdminSupportConversation(
 
   const convId = `conv_support_${tenantId}`;
   const nowIso = new Date().toISOString();
+
+  // Eğer yerel depoda zaten varsa mevcut konuşmayı koru (son mesajını sıfırlama)
+  const existingLocal = getLocalConversations().find((c) => c.id === convId);
+  if (existingLocal) {
+    return existingLocal;
+  }
 
   const localConv: Conversation = {
     id: convId,
@@ -599,13 +613,30 @@ export function subscribeToSuperAdminConversations(
           });
         });
 
-        list.sort((a, b) => {
-          const tA = new Date(a.lastMessageAt || 0).getTime();
-          const tB = new Date(b.lastMessageAt || 0).getTime();
+        // Yerel konuşmalarla birleştir (Firestore gecikmelerine karşı tam dayanıklılık)
+        const localList = loadLocalSupport();
+        const mergedMap = new Map<string, Conversation>();
+        localList.forEach((c) => mergedMap.set(c.id, c));
+        list.forEach((c) => mergedMap.set(c.id, c));
+
+        const merged = Array.from(mergedMap.values()).sort((a, b) => {
+          const tA = new Date(a.lastMessageAt || a.createdAt || 0).getTime();
+          const tB = new Date(b.lastMessageAt || b.createdAt || 0).getTime();
           return tB - tA;
         });
 
-        callback(list);
+        // Yerel önbelleğe de güncelle
+        try {
+          const allLocal = getLocalConversations();
+          merged.forEach((m) => {
+            const idx = allLocal.findIndex((x) => x.id === m.id);
+            if (idx >= 0) allLocal[idx] = m;
+            else allLocal.unshift(m);
+          });
+          localStorage.setItem(LOCAL_ALL_CONVS_KEY, JSON.stringify(allLocal));
+        } catch {}
+
+        callback(merged);
       },
       (err) => {
         console.debug('subscribeToSuperAdminConversations note:', err);
@@ -616,13 +647,21 @@ export function subscribeToSuperAdminConversations(
   }
 
   const handleBus = () => callback(loadLocalSupport());
+  const handleStorage = (e: StorageEvent) => {
+    if (e.key === LOCAL_ALL_CONVS_KEY || e.key === LOCAL_SYNC_PING_KEY) {
+      callback(loadLocalSupport());
+    }
+  };
+
   chatBus?.addEventListener('message', handleBus);
   window.addEventListener('tp_live_chat_event', handleBus);
+  window.addEventListener('storage', handleStorage);
 
   return () => {
     unsubscribeFirestore();
     chatBus?.removeEventListener('message', handleBus);
     window.removeEventListener('tp_live_chat_event', handleBus);
+    window.removeEventListener('storage', handleStorage);
   };
 }
 

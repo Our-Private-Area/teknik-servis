@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Crown,
@@ -46,6 +46,7 @@ import {
   subscribeToMessages,
   sendChatMessage,
   markConversationAsRead,
+  getOrCreateTenantAdminSupportConversation,
 } from '../../services/chatService';
 import toast from 'react-hot-toast';
 import './SuperAdminDashboard.css';
@@ -54,29 +55,50 @@ export default function SuperAdminDashboard() {
   const navigate = useNavigate();
   const { tenants, currentTenant, setCurrentTenant, createTenant, updateTenant, updateCurrentTenant } = useTenantStore();
   const { transactions, addTransaction, deleteTransaction } = usePlatformStore();
-  const { logout } = useAuthStore();
+  const { currentUser, logout } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<'tenants' | 'finances' | 'support'>('tenants');
   const [searchTenant, setSearchTenant] = useState('');
 
   // Canlı Destek Masası State
   const [supportConversations, setSupportConversations] = useState<Conversation[]>([]);
-  const [selectedSupportConv, setSelectedSupportConv] = useState<Conversation | null>(null);
+  const [selectedSupportConvId, setSelectedSupportConvId] = useState<string | null>(null);
   const [supportMessages, setSupportMessages] = useState<ChatMessage[]>([]);
   const [adminReplyText, setAdminReplyText] = useState('');
   const [isAdminSending, setIsAdminSending] = useState(false);
   const supportMessagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Tüm kayıtlı işletmeler için destek kanalını garantiye al
+  useEffect(() => {
+    if (tenants.length > 0) {
+      tenants.forEach((t) => {
+        getOrCreateTenantAdminSupportConversation(t.id, t.brandName || t.name);
+      });
+    }
+  }, [tenants]);
+
   // Süper admin için tüm işletmelerin destek odalarını canlı dinle
   useEffect(() => {
     const unsub = subscribeToSuperAdminConversations((list) => {
       setSupportConversations(list);
-      if (!selectedSupportConv && list.length > 0) {
-        setSelectedSupportConv(list[0]);
-      }
     });
     return () => unsub();
   }, []);
+
+  // İlk açılışta veya seçili oda yoksa ilk odayı seç
+  useEffect(() => {
+    if (!selectedSupportConvId && supportConversations.length > 0) {
+      setSelectedSupportConvId(supportConversations[0].id);
+    }
+  }, [supportConversations, selectedSupportConvId]);
+
+  // Aktif seçili konuşma nesnesi (ID üzerinden güvenli çözümleme - resetlenme yapmaz)
+  const selectedSupportConv = useMemo(() => {
+    if (selectedSupportConvId) {
+      return supportConversations.find((c) => c.id === selectedSupportConvId) || null;
+    }
+    return supportConversations[0] || null;
+  }, [selectedSupportConvId, supportConversations]);
 
   // Seçili işletmenin mesajlarını dinle
   useEffect(() => {
@@ -953,7 +975,7 @@ export default function SuperAdminDashboard() {
                       return (
                         <div
                           key={conv.id}
-                          onClick={() => setSelectedSupportConv(conv)}
+                          onClick={() => setSelectedSupportConvId(conv.id)}
                           style={{
                             padding: '14px 16px',
                             borderBottom: '1px solid rgba(255, 255, 255, 0.04)',
